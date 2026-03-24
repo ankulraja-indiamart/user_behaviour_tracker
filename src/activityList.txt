@@ -1,0 +1,1749 @@
+1010: Show Add Product Page In Unidentified Mode
+1011: Show Rejected Products Page
+1019: Show Products We Buy Page
+1020: Show Manage BL Product Preference Page
+1021: Products We Buy Updated
+1022: Tender Purchased
+1023: Show Tenders Nearing Due Date
+1024: Fetch More Results For Activity Log
+1026: Product Group Updated
+1027: Product Edited Saved
+1029: Suggest Mcat To Map Product
+1030: Show Product Edit Page
+1031: Product Group Added
+1038: Show Manage Products Page
+1039: Product Deleted
+1040: Show group drop down selectbox in manage products page
+1041: Product Pushed To Top
+1042: Show Manage Products Page for one User Group
+1043: Product Saved
+1044: Show Manage Product Page
+1045: Show Manage Products Section Page
+1046: Show BL Box on Dashboard
+1047: Show TDR Box on Dashboard
+1048: Updated Contact Details From Dashboard
+1054: Show Manage Product Page
+1055: Show Purchased Buy Leads Page
+1056: Show Product Group Rearrange Page
+1062: Product Sequence Changed
+1063: Show Product Rearrange Page
+1064: Add / Delete Trade Alerts
+1065: Change Password Submitted
+1067: Revised Credit Structure
+1069: Enquiry Viewed From Dashboard
+1070: Show Change PW Page
+1071: Show Purchased Tenders Page
+1072: Tender Purchased Through Mailer
+1074: Show Feedback Popup
+1075: Feedback Submitted
+1076: Show Promote Catalog Page
+1077: Enquiry Addressbook Sort
+1079: Geoip
+1082: Edit Product
+1085: Product Added In Logout Mode
+1093: View All Contacted Suppliers
+1096: Buy Requirement Closed Clicked
+1097: Buy Requirement Closed
+1099: Show Manage Inbox Folders Page
+1101: Purchased Buylead Feedback
+1102: Show Manage Products Page
+1103: Show Forgot PW Page
+1105: Show Repost Your Buy Requirement Page
+1106: Buy Requirement Reposted
+1122: Check Domain
+1123: User Details ON Post Buylead
+1124: Feedback For Relevant Enquiry Saved
+1125: Show Contact Detail Page
+1126: Show Awards Memberships & Certificates Page
+1130: Business Profile Updated
+1131: Domain Check For Email On Contact Details Page
+1132: Check Unique Email
+1133: Check Unique Mobile
+1134: Check unique fax number
+1135: Check unique pns number
+1136: Mobile Verified
+1137: Verify Mobile Code
+1141: MY Enquiries New Inbox Folder Deleted
+1142: Email Verification From Contact Profile Page
+1143: Sort Oder/Pagination Changed For Rejected Products
+1145: Show Location Preferences Page
+1146: Clicked On Verify Email Through Mailer
+1147: Show Manage Open Buy Requirements Page
+1148: Product Marked Hot
+1149: Head Office Contact detail Updated
+1156: Buylead Push To Top
+1157: Show Testimonial Page
+1158: Add/Edit Testimonial
+1159: Testimonial Deleted
+1160: Awards added / edited
+1161: Award Deleted
+1162: Show Awards Rearrange Page
+1163: Awards Rearranged
+1164: Show Manage Profile Page
+1165: Profile Added / Edited
+1166: Profile Deleted
+1167: Show Profile Rearrange Page
+1168: Profile Rearranged
+1169: Show Quality & Compliance Page
+1170: Add/Edit Quality
+1171: Show Quality Rearrange Page
+1172: Quality Rearranged
+1173: Quality Deleted
+1174: Show Infrastructure & Facilities Page
+1175: Infrastructure Added / Edited
+1176: Infrastructure deleted
+1178: Infrastructure Rearranged
+1179: Show Jobs And Opportunities Page
+1180: Jobs And Opportunities Added / Edited
+1181: Jobs And Opportunities Deleted
+1182: Show Jobs Rearrange Page
+1183: Jobs Rearranged
+1184: Show News Page
+1185: News Added / Edited
+1186: News Deleted
+1187: Show Custom Profile Page
+1188: Custom Profile Added
+1189: Custom Profile Deleted
+1190: Show Custom Profile Rearrange Page
+1191: Custom Profile Rearranged
+1192: Show Manage Profile 1 Page
+1193: Edit Profile 1 Page
+1194: Profile 1 Deleted
+1195: Show Profile 1 Rearrange Page
+1197: Show Manage Profile 2 Page
+1198: Edit Profile 2 Page
+1199: Profile 2 Deleted
+1201: Profile 2 Rearranged
+1202: Show Contact Detail Page
+1204: Buyer Confirmed or Updated his Buy Requirement as a response to some mail
+1206: Show PNS prference setting Page
+1209: Show Latest BL Page
+1210: Buy Lead Purchased
+1212: Buy Lead Rejected
+1213: Buy Lead Purchased
+1214: Show Latest BL Page
+1215: Send SMS On Purchasing BL
+1216: Show Latest BL Page
+1218: Show Send Enquiry Attachment Iframe
+1219: Post Request
+1220: Download Attachment
+1221: Location Preferences Updated
+1222: Show Purchased BL Send Response Form
+1228: PNS preference settings changed
+1231: Access Gladmin Page
+1232: Search PC Client Using MY-Gladmin
+1233: Search Group
+1234: Show Contact Profile Page
+1235: Show Latest BL Page
+1236: Paid Client Requested for a Call Back
+1239: Set Personalised URL
+1243: Catalog Published
+1246: Show Supplier Dashboard
+1247: Upload Glusr Image Request From Dashboard
+1248: Show About Us Small Image Iframe
+1249: About Us Small Image Uploaded
+1250: Show Left Nav Logo Image Iframe
+1251: Show Business Profile Logo Image Iframe
+1252: Show Product Small Image Iframe
+1253: Show Group Small Image Iframe
+1255: Product PDF Brochure Uploaded
+1256: Show Contact Profile Image Iframe
+1257: Upload Glusr Image From Contact Detail
+1258: Show Business Card Front Image Iframe
+1259: Show Business Card Back Image Iframe
+1260: Product Group Image uploaded
+1263: Show Buy Requirement Image Iframe
+1264: Show Edit Quality Image Iframe
+1265: Show Edit Awards Image Iframe
+1266: Show Edit Profile Image Iframe
+1267: Show Edit Infrastructure Image Iframe
+1268: Show Edit Testimonial Image Iframe
+1269: Show Edit News Image Iframe
+1270: Show Edit Customprofile Image Iframe
+1271: Company Logo Uploaded
+1272: Show Password Changed
+1273: Password Sent
+1274: Show Add Product Image Iframe in Logout Mode
+1275: Postagain Offer Deleted
+1276: Show Edit Product Iframe
+1277: Product Image Uploaded on edit product screen
+1279: Show Latest BL Page For Bigbuyer
+1283: Show Latest BL Page For Bigbuyer And Retailer
+1285: Show Product Image Uploaded By URL Link
+1286: Show Subscription Plans
+1287: Show All RFQ
+1289: Show Latest BL Page
+1293: Logo Removed From Business Profile Page
+1295: Show Subscription Plans
+1296: Business Card Back Image Uploaded
+1297: Business Card Front Image Uploaded
+1302: To Show Profile Photo on Dashboard
+1303: To Upload Product Image
+1337: Show Buylead Page
+1338: Add Product Price Page
+1339: Show Buylead Page
+1359: Multiple Image Upload
+1377: Suggested Buylead
+1378: Image Uploaded By URL
+1400: Product Image Iframe
+1401: Payement Generated
+1490: Business Feeds on Dashboard
+1491: Buyleads Category Wise
+1492: Buyleads on Priority
+1493: Update Profile
+1495: Postagain Offer deleted
+1540: Show Mcat (via search) for mapping Product
+1554: Manage Product Hot count
+1562: Quote Only Button
+1563: Send Quotation POP UP
+1577: Push to TOP
+1579: Update Requirement in Waiting
+1586: Delete Multiple Images
+1597: Edit Contact Profile
+1598: Favourites Products
+1652: BL Purchased RFQ
+1656: Enquiry View
+1660: Unsubscribe Alerts
+1661: Unsubscribe Alerts
+1719: Delete Product
+1720: Update Product
+1721: Add Product
+1725: Product We buy
+1726: Verify and Update Buy Requirement
+1727: Update Buylead
+1729: Thankyou Form
+1746: Load Product Listing on Product Page
+1747: Load Enquiry Data on dashboard
+1748: Seller Assistance details on Dashboard
+1749: Details of product ISQ
+1750: Details of MCAT ISQ
+1751: ISQ Insertion
+1756: Loading Active Service Listing on Dashboard
+1757: Location Wise Latest Bl
+1758: Product update
+1760: Add Product first form submit
+1769: Show City wise BL
+1776: Add New Product Group
+1777: Load Credit Packages option popup on BL Page
+1778: Load Latest Tender Page
+1779: Mark Favourite Buy lead
+1780: Unmark Favourite Buy lead
+1781: To Fetch IP during SignIn or Joinfree
+1788: To Load Out of Stock Page
+1789: To Mark Product In Stock
+1790: To Mark Product out of  Stock
+1791: To Load Shortisted Leads Page
+1806: Quotation Help FAQ
+1812: File upload in BL Quotation Form
+1813: User Detail updation During Join free
+1837: Latest BL Page on Scroll
+1838: Load My Buy Lead Page
+1839: Search in My Buy Lead Page
+1845: Check seller LS oR SS
+1846: Save Product Info
+1847: Save product image
+1848: Clicked on Unsubscribe mailer
+1849: Submit Quotation
+1852: Set V4illex Cookie
+1859: To fetch Prdoduct data
+1860: Image Upload
+1867: Categories of Interest Page
+1868: Click on View More Categories
+1873: Show Post Buy Requirement Page
+1874: Show Dashboard Page
+1875: Show My Contacts Page
+1876: Categories of Interest Page
+1879: Feedback For Relevant Enquiry Saved
+1880: Reply Enquiry
+1881: Premium Categories Seller Tools
+1882: Validation Check
+1884: Send Enquiry - Attachment Uploaded
+1885: Reply Addressbook
+1899: Login
+1902: Buy Leads Refresh
+1903: Refresh Shortlisted BL Count
+1904: Load Rejected Products
+1909: Fetch data on Add price window
+1910: Click on Verify Email
+1911: Mark/Unmark Enquiry Favourite
+1912: Upload product image on ManageProduct screen
+1913: Load Reminder List
+1914: Set Reminder
+1915: Edit Reminder
+1916: Update Reminder
+1917: Load Data on Manage Unmapped Products Screen
+1918: Manage Unmapped Products Screen
+1923: Add Product we buy
+1924: Fetch Favourite data
+1925: View More
+1926: Fetch data for pagination
+1927: To fetch Templates
+1928: Update Templates
+1929: Create New Template
+1930: Upload Image on Add product screen
+1931: Show buy lead
+1932: Load Crop iframe
+1933: Check seller LS oR SS on Add image
+1942: Get Status of Enquiry
+1943: Mark Status of Enquiry
+1944: To load LeftNavigation on SBL
+1948: Fetch Pwb data
+1950: Prime ISQ popup
+1951: Save Prime ISQ
+1956: Display Invoice data
+1957: Load Data on Manage Filter Products Screen
+1958: Fetch recommended leads
+1959: Fetch IMA header
+1960: Fetch Notes in Enquiry
+1964: Search Shotlisted BL
+1965: SignIn/Join Free
+1968: Premium Categories Page
+1970: Cookie for User Details
+1971: Latest BL Mark Favourite
+1980: Show Enquiry Contact Book
+1981: Get Product Data
+1982: Load Image IFrame
+1983: Get ISQ Data
+1984: Image load
+1985: Get Folders Data
+1988: Show Drive
+1989: Show Drive Photo bank
+1993: Load Buy Lead Page
+2002: Seller Latest BL Search Kwrds
+2003: Seller Inbox BL Search Kwrds
+2042: Load Banner
+2043: Load Paylist
+2044: Buy Lead Card on Desktop
+2045: Business Card on Desktop
+2046: Catalog Views on Desktop
+2047: Show PAY Banner on Desktop
+2048: NPS Popup
+2049: Payment Card
+2050: Catalog Score
+2051: Active Service Card
+2052: Enquiry Data
+2053: Product Card
+2054: Show Expert Assistance
+2055: Show Youtube Video
+2056: Load Invoice Data
+2057: Load Products
+2058: Fetch MCAT Name
+2059: Display Invoice Banner
+2060: Get Secondary Image Data
+2061: Display Group list
+2062: Load Messages
+2063: Company Profile
+2065: Add Product Page
+2066: Get Banner Type
+2090: Invoice Generate
+2091: Get Product List Data
+2092: Get Buy List Credits Data
+2104: Product Categories Page
+2122: Get Average Ratings
+2123: Get Message Read counts
+2124: Get Labels
+2125: Load Enquiries
+2126: Load Contacts
+2127: Get Last Seen
+2128: Manage FCP
+2212: Internal Request
+2213: Manage Product via FCP campaign
+2214: Manage Profile via GST Click
+2216: Recent Leads Page
+2217: Relevant Buy Leads Page
+2275: Save Category
+2276: Save Contact Profile
+2277: Save Statutory Profile
+2278: Products Details Mapped
+2279: Save Additional Details
+2280: Save Product Name
+2281: Save Mcats Name
+2282: Save PDFs
+2283: Save ISQs
+2284: Save Price
+2285: Mark as Stock
+2286: Save Video
+2287: Delete Listing
+2288: Save Product Description
+2289: Save Secondary Images
+2290: Business Profile Page
+2291: Send Reply
+2297: Premium Service Left Navigation
+2298: Online Sales - Buylead Page Proposal Creation
+2299: Online Sales - Premium Service Proposal Creation
+2300: Online Sales - Buylead Page Proposal Approved
+2301: Online Sales - Premium Service Proposal Approved
+2308: BL Location pref
+2309: BL Filer Nav
+2310: Incremental Buy Lead
+2311: Get User Group
+2312: AASA support
+2313: Get Products Data
+2314: Get Partial Data
+2315: Get Payment Details
+2316: Dashboard GST Verification
+2317: Get MCAT details
+2318: BuyLead Search
+2319: Get Specifications
+2320: Display Renewal
+2321: Get Proposal
+2322: Show Manage Products
+2323: Show Suggested Group
+2324: Save products
+2325: Show Recent Leads
+2326: Get OTP from Dashboard
+2327: Show Lead Manager
+2328: Verify User
+2329: CIN Status
+2330: Update Item Group
+2331: Start IM assistant
+2332: Update Contact Profile data
+2333: IM assistant Chat
+2334: Update Contact Image
+2335: Verify OTP on Dashboard
+2336: Get MCAT image
+2337: Get drive data
+2338: Get User Login Data
+2339: Get image on Business Feeds
+2440: Send OTP to seller
+2441: Get file count
+2442: Create Product Group
+2443: Send Enquiry on Business Feeds
+2444: Show BuyLeads PWA
+2445: Get Category Data
+2446: Get business profile
+2447: Get contact image url
+2448: Get Business Card
+2449: Show Photos & Docs
+2524: Sell on IM Thank You Page
+2525: Add/Edit Product MDC pop up
+2526: LMS MDC pop up
+2527: Post Retail BL purchase MDC pop up
+2528: vgFCP banner - MDC Pitch
+2529: BuyLead Card Banner - MDC Pitch
+2530: Zero Catalog View - MDC Link
+2588: bring content on BL search page load
+2589: On page scroll fetch data vai ajax request
+2590: apply any filter then call this url via Ajax
+2591: Add a template (default)
+2592: apply any filter on PWA
+2593: bring content on BL relevant/recent page load on PWA
+2594: click on contact buy now Button on PWA
+2595: On page scroll fetch data vai ajax request on PWA
+2596: On page scroll fetch data vai ajax request on shortlites page
+2597: Save reminder while replying
+2598: apply any filter on PWA
+2599: bring content on BL search page load on PWA
+2600: On page scroll fetch data vai ajax request on PWA
+2601: location pref page url
+2602: to get product details on BL Card
+2603: Show Invoice HTML Page
+2607: Internal
+2609: Internal
+2610: redirects users to LMS(Desktop)
+2611: testing url for lms desktop team
+2612: Open enquiry detail page
+2613: BL Payment Succes
+2622: Internal
+2623: Internal
+2624: Show My Payments
+2626: Show Product Report
+2627: Change Password
+2628: Upsell pitch to Seller
+2629: Show Collect Payments
+2630: Display PNS settings
+2631: Show City Category Report
+2634: Load Seller Contacts
+2635: Load Buyer Contacts
+2636: Seller Login Popup
+2637: Image Upload Log File
+2638: Seller Quotation
+2639: to show consumed leads
+2640: Show Proposal Acknowledgement
+2641: to fetch the new available bl count
+2642: tender search page on Seller
+2643: to fetch data for latest tenders page
+2644: Show Performance Report
+2645: Upsell pitch to Seller
+2646: apply any filter on PWA
+2647: Robot txt file
+2648: Download PWIM Receipt
+2649: Download GST Receipt
+2650: Internal Request
+3062: MDC Monthly Buy Now from Seller
+4009: Check MDC pitch
+4010: Store MDC pitch
+4011: Post purchase Acc Manager
+4012: Post purchase Invoice
+4013: Seller BuyLead Tenders
+4014: Seller BuyLead Page
+4015: Seller BuyLead IEC check
+4016: Seller BuyLead mapped product
+4017: Seller BuyLead Wishlist
+4018: Seller BuyLead PWA
+4019: Seller BuyLead Hide/Unhide
+4020: Seller BuyLead MCAT city
+4021: Sugg Action Show BL credits
+4022: Show NACH banner
+4048: Display Marketing Campaigns
+4049: PWIM Suggested Action
+4050: Winback Pool NACH details
+4051: BuyLead Data Powered Pitch
+4052: Vyapar pitch after Successful Catalog Hosting
+4053: Identify Sales Vertical of a Seller
+4054: Show GST widget on Paid Service Screen
+4055: Successful MDC yearly payment
+4056: Successful MDC monthly payment
+4057: One Step MDC renewal journey
+4058: Diwali Mailer CTA
+4059: BuyLead Mailer Redirection
+4060: Internal Testing
+4061: PWA shortlisted buylead page
+4062: Save IEC
+4063: Quotation Popup after Retail BL Purchase
+4064: Add Negative Location
+4065: Remove Negative Location
+4066: Add Negative MCAT
+4067: Remove Negative MCAT
+4068: Remove D rank category
+4069: Resubscribe for Indiamart Buy Leads
+4070: Renewal Widget Click
+4071: IVE package click from BL popup
+4072: City Category click for Services
+4073: Upsell Banner click on Dashboard
+4074: Fetch Saved BL Filters
+4075: Save BL Filters
+4076: Seller Bank Detail
+4077: Send Payment Request
+4078: Collect Payments FAQ
+4079: Seller Login Through Mailer
+4080: Seller Rating Page
+4081: Show Website Page
+4082: Display Performance Report
+4083: Check Absurd Price
+4084: Infrastructure Update
+4085: Quality Update
+4086: Quality Add
+4087: Bank Details Update
+4088: Add Awards Page
+4089: Seller Rating Sorting
+4090: Home Page Details update
+4091: Seller Academy
+4092: Product Help Section
+4093: Bulk Price Update page
+4094: Update Product Group
+4095: Update Sequence in Product Group
+4097: Buy Lead Purchase  via Bl alert fs mail
+4098: BuyLead Shortlist via Bl alert fs mail
+4099: Mark Not Interested  via Bl alert fs mail
+4100: BuyLead Search  via Bl alert fs mail
+4101: Relevant Buy Leads Page via Bl alert fs mail
+4102: Show Manage Products via BL alert IM benefit card
+4103: Get business profile via Bl alert Profile Enrichment Card
+4104: Premium Service via BL alert FS mailer
+4105: Show Manage Products via BL alert Product Enrichment Card
+4106: Get business profile via Bl alert GST Card
+4132: Retail Export Lead Purchase
+4133: India BL purchase by Paid Seller
+4134: Free_Supplier_ContactBuyer Login
+4135: Free_Supplier_Shortlist Login
+4136: Free_Supplier_NotRelevant Login
+4137: Free_Supplier_View_Similar Login
+4138: Free_Supplier_ExploreBuyers Login
+4139: Free_Supplier_benefit_ManageProducts_card Login
+4140: Free_Supplier_GST_card Login
+4141: Free_Supplier_ProductEnrichment_ManageProduct_card Login
+4142: Free_Supplier_ProfileEnrichment_card Login
+4143: Free_Supplier_PremiumServices_card Login
+4219: MDC I_Am_Interested Click from Catalog Views Screen
+4222: Silver/Gold/Platinum Package Interested
+4234: Meeting Pitch PPT to Seller
+4235: call buyer CTA of Catalog Views Screen
+4236: View Email CTA on of Catalog Views Screen
+4237: send message CTA of Catalog Views Screen
+4238: share product CTA of Catalog Views Screen
+4262: Schedule Free Demo  CTA of Catalog Views Screen
+4263: Schedule Free Demo CTA on of BuyLead Screen
+4264: Schedule Free Schedule Free Demo CTA of LMS Screen
+4265: Schedule Free Demo CTA of Product Add/Edt Screen
+4266: Annual MDC Retry Payment Click
+4267: Monthly MDC Retry Payment Click
+4274: internal
+4284: Export 50 CTA on Catalog Subscription Screen
+4285: Export 100 CTA on Catalog Subscription Screen
+4286: VE 6 month CTA on Catalog Subscription Screen
+4287: Monthly MDC CTA on Catalog Subscription Screen
+4288: Chota Package CTA on Catalog Subscription Screen
+4289: Gold Package CTA on Catalog Subscription Screen
+4290: Platinum Package CTA on Catalog Subscription Screen
+4291: Indian Catalog CTA on Catalog Subscription Screen
+4292: Foreign Catalog CTA on Catalog Subscription Screen
+4295: Get Help TF HL on Seller MY
+4296: Contact Buyer India BL on Seller MY
+4300: Successful India Catalog Purchase
+4301: Successful Foreign Catalog Purchase
+4323: Contact buyer now
+4324: Shortlist
+4325: Hide icon
+4326: Not relevant CTA
+4365: Internal Request
+4416: BL form Step 1
+4417: BL form Step 2
+4418: BL form Final Step
+4528: Dashboard Top Banner renewal click
+4529: Dashboard Active Services renewal click
+4530: Post LMS Reply renewal click
+4531: Post BL consumption renewal click
+4532: Add_Edit_Product renewal click
+4533: LMS Retention renewal click
+4534: BL Retention renewal click
+4535: Product Retention renewal click
+4536: CMR Popup renewal click
+4537: Retention_Popup renewal click
+4538: SuggestedAction_30_90 renewal click
+4539: SuggestedAction_10_30 renewal click
+4540: SuggestedAction_0_10 renewal click
+4541: SuggestedAction_Retention_renewal click
+4542: Default renewal click
+4543: Silver package Click
+4544: India_Retail_299 retail  Click
+4545: Gold package  Click
+4546: Platinum package  Click
+4547: yearlymdc service  Click
+4548: Foreign_Retail_499 retail  Click
+4549: Foreign_Retail_599 retail  Click
+4550: Ve_Silver_6months service  Click
+4551: India_Retail_399 retail  Click
+4552: India_Retail_499 retail  Click
+4553: India_Retail_599 retail  Click
+4554: Export_50 package  Click
+4555: Export_100 package  Click
+4556: Export_200 package  Click
+4557: monthlymdc service  Click
+4558: default default  Click
+4603: IM Insta Hotleads
+4704: Schedule Free Demo CTA on of BuyLead listing Screen
+4709: Save reminder while replying
+4710: BL Location pref
+4711: Latest BL Mark Favourite
+4712: Seller BuyLead Hide/Unhide
+4713: Submit Quotation
+4714: Refresh Shortlisted BL Count
+4715: Seller BuyLead Wishlist
+4716: Buy Lead Purchased
+4717: Save BL Filters
+4718: Quotation Popup after Retail BL Purchase
+4719: Save IEC
+4720: Not relevant CTA
+4721: Fetch Saved BL Filters
+4722: Seller BuyLead mapped product
+4723: Buy Lead Rejected
+4724: Seller BuyLead IEC check
+4725: Buyleads Category Wise
+4726: Duplicate
+4727: Duplicate
+4728: Seller BuyLead MCAT city
+4736: BLDetail
+4737: SimilarLeads
+4739: TrustSeal pro service click
+4749: Trustseal Pro buy now
+4750: Maximiser pro buy now
+935: Activity Log For User
+936: Fetch More Results For Activity Log
+937: Show Business Feeds
+938: Fetch More Results For Business Feeds
+939: Contact Now From Business Feeds
+940: Show Home Page Form
+941: Home Page Details updated
+942: Show Statutory Profile Page
+947: Show Business Profile Page
+949: Show My Payments Page
+950: Show Invoice Page
+951: Show Invoice Detail Page
+952: Show Add Product Page
+953: Product Added
+954: Check Duplicate Item Code
+955: Show Manage Open Buy Requirements Page
+957: Show Post Buy Requirement Page
+963: Check Unique Mobile On Join Free Popup
+964: Check Unique Email On Join Free Popup
+965: Show Add Group Page
+966: Check Duplicate Group Name
+967: Product Group Deleted
+969: Show Edit Product Group Page
+970: Show Add Product Page
+971: Show Privacy Settings Page
+972: Privacy Setting Preference Changed
+973: Enquiry Viewed
+974: MY Enquiries New Inbox Folder Added
+975: Show Enquiry Inbox
+976: Show Enquiry Sentbox
+977: Show Enquiry Trashbox
+978: Back to Inbox / Move/Sentbox/Junk
+979: Show Enquiry Junkbox
+980: Show BL/Credit Transaction History Page
+981: Show BL Help / FAQs Page
+982: Show IndiaMART Advantage Page
+983: Show User Email Guide Page
+984: Show Manage Groups Page
+985: Show Product Group Rearrange Page
+986: Product Group Rearranged
+987: Show Manage Hot Products Page
+988: Product Marked Unhot
+990: Show Manage Additional Contact Details Page
+999: Show Business Card Page
+2145: Business feed screen
+2146: Favorites list
+2148: APP Settings
+2149: Get Recommendations
+2150: Product Visited
+2151: Splash Screen
+2154: Conversation Detail
+2247: My Profile Page
+2248: List of all contacts of a user
+2249: Home Page-Buyer
+2250: Message Center Conversations
+2251: Product Search
+2253: Relevant buylead
+2254: Buyer Message Center Contact Details
+2255: Recent buylead
+2256: Who Viewed Your Catalog
+2257: Search Buylead
+2258: Product Detail
+2259: Send Enquiry
+2260: Shortlisted buylead
+2261: Message Center Contact Listing
+2262: Latest Buylead
+2263: Message Center-Contact-Details
+2264: Daily Business Summary
+2265: Manage Requirements
+2266: Message Center Contact Listing
+2267: Product Impcat Page
+2268: My Favourites
+2269: Seller Rating Screen
+2270: Edit Product ISQ Screen
+2271: Edit Product
+2272: MBR Repost Screen
+2273: MBR Details Screen
+2294: Edit Product-Details changed
+2295: Edit Profile-Details changed
+2305: SOI Seller Registered
+2384: Edit-Profile
+2385: SOI Click on Sell-on-Indiamart
+2386: User Verification Blocker Screen
+2387: AccountScreen
+2388: Add Product Preview
+2389: Add-Product
+2390: Product Add ISQ
+2391: My-Product-Listing
+2392: Profile_Page
+2393: Expert Assistance
+2394: BL-Location-Preferences
+2395: AddDetailsScreen
+2396: Duplicate Mobile Screen
+2397: Latest-Tenders
+2398: SUPPLIER-DASHBOARD
+2399: Enquiry-Detail
+2400: My Enquiries
+2401: PNS Setting
+2402: Message Center-Contact-Add
+2403: IOS_MPOS
+2404: OTP-Verification
+2405: Product Search
+2406: Send Enquiry Isq Screen
+2407: Pbr Thank You Screen
+2408: User Recommendation
+2409: Default
+2410: Profile Enrichment
+2411: PBR Isq Screen
+2412: Standard Products
+2413: Company Profile
+2414: Product Listing
+2415: Your Favourites
+2416: Standard Product Detail
+2417: Recommended Products
+2418: BackgroundSync
+2419: Mbr Add Detail Isq Screen
+2420: Message Center-pdf-Quotations
+2512: Api Request
+2518: SOI Company Name Click
+2519: SOI Add Product Click
+2520: SOI Add GSTIN Click
+2521: SOI Add Address Click
+2522: SOI Email Click
+3063: Bulk Price Update Screen
+3065: Message Center-Contact-Add
+3093: MessageCenter-Call-Logs-Listing
+3094: PreviousSearches
+3095: TabBar
+3096: ProductOfYourInterest
+3097: ShareProductCatalogue
+3098: Search
+3099: SideMenu
+4000: Youmaybeinterestedin
+4001: Waitingforapproval
+4002: BulkPriceUpdateScreen
+4003: Recommended
+4004: MCAT
+4005: LeadManager - Forward Attachments
+4006: CategoriesOfYourInterest
+4007: Enquiry-Detail-MBR
+4008: BulkPrice Edit
+4179: Recent buylead - filter
+4180: Relevant buylead - filter
+4280: PDP Get Best Price Clicked
+4281: PDP Recommended Products
+4282: Get Best Price'  Clicked
+4327: MyProfileMDCBannerClick
+4328: BizfeedMDCBannerClick
+4329: BMCMDCBannerClick
+4330: DashboardMDCBannerClick
+4331: MyProductsMDCBannerClick
+4332: BuyNowAfterMyProfileSubscriptionBanner
+4333: BuyNowAfterBizfeedSubscriptionBanner
+4334: BuyNowAfterBMCSubscriptionBanner
+4335: BuyNowAfterMyProductsSubscriptionBanner
+4336: BuyNowAfterDashboardSubscriptionBanner
+4337: SellerToolsClickonDashboard
+4338: BuyNowAfterSellerToolsSubscriptionBannerDashboard
+4339: SellerToolsClickonHamburger
+4340: BuyNowAfterSellerToolsSubscriptionBannerHamburger
+4341: BLListingMDCBannerBuyNowClick
+4342: ViewMDCBannerBLListingClick
+4343: AddProductactivejourneyBuyNowClick
+4344: ViewDataPoweredAddProduct
+4345: ClickDataPoweredAddProduct
+4346: EditProductactivejourneyBuyNowClick
+4347: ViewDataPoweredEditProduct
+4348: ClickDataPoweredEditProduct
+4349: BuyNowClickBMCReply
+4350: ViewDataPoweredBMCReply
+4351: ClickDataPoweredBMCReply
+4352: BuyNowClickSingleBLSubscriptionBanner
+4353: ViewSubscriptionScreenAfterBLPurchaseAttempt
+4354: NeedHelpCTAClickSubscriptionScreen
+4355: BuyNowMonthlyAfterMyProfileSubscriptionBanner
+4356: BuyNowMonthlyAfterBizfeedSubscriptionBanner
+4357: BuyNowMonthlyAfterBMCSubscriptionBanner
+4358: BuyNowMonthlyAfterMyProductsSubscriptionBanner
+4359: BuyNowMonthlyAfterDashboardSubscriptionBanner
+4360: BuyNowMonthlyAfterSellerToolsSubscriptionBannerDashboard
+4361: BuyNowMonthlyAfterSellerToolsSubscriptionBannerHamburger
+4362: AddProductactivejourneyBuyNowMonthlyClick
+4363: EditProductactivejourneyBuyNowMonthlyClick
+4364: BuyNowMonthlyClickBMCReply
+4371: App LMS Reply
+4373: App My Profile
+4374: App Edit Profile
+4375: App BL Balance
+4376: App Seller Dashboard
+4377: App Hamburger Menu
+4378: App BL Consume
+4379: App add product
+4380: App Suggested Action
+4494: ContactBuyerNowBuyNowClick
+4495: ViewSubscriptionPlan
+4496: SubscriptionPlanBuyNowClick
+4497: ViewBuyLeadBalanceGetMoreBuyLeads
+4498: BuyLeadBalanceGetMoreBuyNowClick
+4499: ViewBuyLeadBalanceSellerDashBoard
+4500: SellerDashBoardBuyLeadBalanceBuyNowClick
+4501: ViewSubscriptionScreenSOI
+4502: SOIBuyNowClick
+4503: BuyNowMonthlyContactBuyerNowClick
+4504: BuyNowMonthlySubscriptionPlanClick
+4505: BuyNowMonthlyBuyLeadBalanceGetMoreBuyLeadClick
+4506: BuyNowMonthlySellerDashBoardBuyLeadBalance
+4507: BuyNowMonthlySOIClick
+4678: Buyer_Dashboard_city_change
+4705: Need help Subscription plan
+1058: Recommended Products
+1059: Auto Fetch Request
+1060: Show Home Page
+1113: Ads Visible
+1114: Thankyou Overlay Form
+1115: Profile Edited
+1116: Banner
+1119: Instant Alert Showing Can Not Buy This Buylead
+1120: Password Changed
+1121: Popular Product Categories
+1127: Show Tenders As Per Current Product Preferences
+1153: Instant Alert Showing Unable To Serve Request Due To Database Error
+1154: Feedback Submitted Through Contactus Page
+1155: Buylead Plan Purchased
+1282: M.IM Search
+1290: Preffered Location
+1301: Show On App
+1345: Show More Products
+1346: Enquiry Submitted
+1347: Location Of City
+1348: CTC Feedback Form Submitted
+1349: I Am Interested Submitted
+1399: Ask Num
+1402: To Fetch Impcats On Scroll
+1403: To Fetch More Search Results On Scroll
+1404: IM Mobile Home Page
+1405: Product Delete
+1487: BL Purchased
+1488: Mcat Pagination
+1498: App Greeting
+1518: Enriched Form Submitted in Identified Mode
+1525: Reply Message
+1529: PBR ThankYou
+1530: Post Buy Requirement
+1531: View Sent Messages
+1532: Search Box Page
+1574: Location Based Suppliers Search
+1589: Ask Price Button Clicked
+1761: Show Business Directory Page
+1762: Verification OTP Generation Request Through BL Form
+1770: Scroll on Search Page
+1771: Show Feedback Thank you page
+1784: SOI-phone number screen
+1786: To Load Manage Buy Requirement Page
+1787: Buy Requirement Detail Page
+1834: Generation of Hotlead
+1835: Send Otp
+1836: Not interested BL
+1856: Validate User
+1857: Customer Upgradation
+1858: Request To show Dashboard
+1864: Related Tolexo Product
+1895: Login
+1900: Send OTP
+1901: Verify OTP
+1905: Fetch More Subcategories Results On Scroll
+1906: Select City from suggester
+1919: Seller Score Card
+1920: Mark BL Favourite
+1921: Unmark BL Favourite
+1922: City wise filter
+1952: Fetch favorites data
+1953: Mark/Unmark Favorites
+1954: Verify OTP through MY
+1955: Login through OTP
+1961: Fetch data for Products viewed
+1969: Load Recommendation
+1990: Validate user
+2024: Internal request
+2025: Load Extended Data
+2026: Get BL Data
+2027: Search BL
+2028: Load BL List
+2029: Mark BL Favourite
+2030: Step 2 Seller Onboard
+2031: Step 3 Seller Onboard
+2067: Load Category Data
+2074: Load HTML Data
+2076: Get Product Data
+2077: Get Recent Related Mcats Data
+2078: Get Products Data
+2079: Load RFQs
+2080: Mini PDP Page
+2081: Save Search Data
+2082: Get City Data
+2083: Get ISQ data
+2084: Set ISQ data
+2085: Get Recent data
+2086: Login data
+2088: Users Verification Data
+2089: Migrating from IMOB to IOS APP
+2094: SOI-OTP screen
+2095: SOI-personal details screen
+2096: SOI-address details screen
+2097: SOI-add products screen
+2098: SOI-Thank you screen
+2099: Page Load Tracking Request
+2101: Load conversation
+2102: Load contact details
+2103: Load Messages
+2105: Load messages for seller
+2106: Load messages for Buyer
+2107: Fetch Contact Details for Seller
+2108: Fetch Contact Details for Buyer
+2109: Send Reply for Seller
+2110: Send Reply for Buyer
+2111: Fetch Messages details for Seller
+2112: Fetch Messages details for Buyer
+2119: Recommeded Products
+2120: PWA Error
+2121: Recent Searches Widget
+2145: Business feed screen
+2146: Favorites list
+2148: APP Settings
+2149: Get Recommendations
+2150: Product Visited
+2151: Splash Screen
+2154: Conversation Detail
+2211: Internal Ajax Request
+2218: City Listing
+2219: SID Product Pages
+2229: Terms of use page
+2230: Privacy policy page
+2240: Unread Message Count
+2241: City From Lat Long
+2243: Show Mcat Page
+2244: Payment Protection Page
+2245: Download Company PDF
+2247: My Profile Page
+2248: List of all contacts of a user
+2249: Home Page-Buyer
+2250: Message Center Conversations
+2251: Product Search
+2252: Bigbuyers Buy Requirement Display
+2253: Relevant buylead
+2254: Buyer Message Center Contact Details
+2255: Recent buylead
+2256: Who Viewed Your Catalog
+2257: Search Buylead
+2258: Product Detail
+2259: Send Enquiry
+2260: Shortlisted buylead
+2261: Message Center Contact Listing
+2262: Latest Buylead
+2263: Message Center-Contact-Details
+2264: Daily Business Summary
+2265: Manage Requirements
+2266: Message Center Contact Listing
+2267: Product Impcat Page
+2268: My Favourites
+2269: Seller Rating Screen
+2270: Edit Product ISQ Screen
+2271: Edit Product
+2272: MBR Repost Screen
+2273: MBR Details Screen
+2294: Edit Product-Details changed
+2295: Edit Profile-Details changed
+2305: SOI Seller Registered
+2307: Track Click To Call Button Clicked - PWA
+2384: Edit-Profile
+2385: SOI Click on Sell-on-Indiamart
+2386: User Verification Blocker Screen
+2387: AccountScreen
+2388: Add Product Preview
+2389: Add-Product
+2390: Product Add ISQ
+2391: My-Product-Listing
+2392: Profile_Page
+2393: Expert Assistance
+2394: BL-Location-Preferences
+2395: AddDetailsScreen
+2396: Duplicate Mobile Screen
+2397: Latest-Tenders
+2398: SUPPLIER-DASHBOARD
+2399: Enquiry-Detail
+2400: My Enquiries
+2401: PNS Setting
+2402: Message Center-Contact-Add
+2403: IOS_MPOS
+2404: OTP-Verification
+2405: Product Search
+2406: Send Enquiry Isq Screen
+2407: Pbr Thank You Screen
+2408: User Recommendation
+2409: Default
+2410: Profile Enrichment
+2411: PBR Isq Screen
+2412: Standard Products
+2413: Company Profile
+2414: Product Listing
+2415: Your Favourites
+2416: Standard Product Detail
+2417: Recommended Products
+2418: BackgroundSync
+2419: Mbr Add Detail Isq Screen
+2420: Message Center-pdf-Quotations
+2504: SOI-Company details screen
+2505: SOI-gst details screen
+2506: login request
+2507: OTP verification screen
+2508: SOI-Company/address screen
+2509: SOI-add products screen
+2510: SOI-gst details screen
+2511: SOI-no gst details screen
+2512: Api Request
+2518: SOI Company Name Click
+2519: SOI Add Product Click
+2520: SOI Add GSTIN Click
+2521: SOI Add Address Click
+2522: SOI Email Click
+2584: SOI-personal details screen
+2585: SOI-Company details screen
+2586: SOI-address details screen
+2587: SOI-personal details screen
+2625: Internal Ajax Request
+2667: SOI Thank you page
+2669: Single BL Purchase Attempt
+2670: Manage Products - Know More MDC
+2671: MP_addProduct
+2672: MP_addPrice
+2673: MP_PushtoTop
+2674: MP_EditProduct
+2675: MP_DeleteProduct
+2676: SOI Thank you page
+3063: Bulk Price Update Screen
+3065: Message Center-Contact-Add
+3093: MessageCenter-Call-Logs-Listing
+3094: PreviousSearches
+3095: TabBar
+3096: ProductOfYourInterest
+3097: ShareProductCatalogue
+3098: Search
+3099: SideMenu
+4000: Youmaybeinterestedin
+4001: Waitingforapproval
+4002: BulkPriceUpdateScreen
+4003: Recommended
+4004: MCAT
+4005: LeadManager - Forward Attachments
+4006: CategoriesOfYourInterest
+4007: Enquiry-Detail-MBR
+4008: BulkPrice Edit
+4108: BuyLead Search mobile page via Bl alert fs mail
+4109: Relevant Buy Leads mobile Page via Bl alert fs mail
+4110: Show Sell Offer Details mobile Page via Bl alert fs mail
+4111: Show Manage Products mobile page via BL alert IM benefit card
+4112: Premium Service mobile page via BL alert FS mailer
+4113: Get business profile mobile page via Bl alert GST Card
+4114: Verify OTP
+4115: App Deeplinking
+4116: Sell on Indiamart
+4117: Business Profile
+4118: Add CIN
+4130: Show Shortlisted BLs mobile Page via Bl alert fs mail
+4131: Show Not Interested BLs mobile Page via Bl alert fs mail
+4144: Show Profile Enrichment mobile Page via Bl alert fs mail
+4145: Free Supplier Contact Buyer login IMOB
+4146: Free Supplier Product Enrichment Manage Product card login imob
+4147: Product shared dashboard WhatsApp
+4148: Product shared hamburger WhatsApp
+4149: Produc tshared prodlisting header WhatsApp
+4150: Product shared prodlisting card WhatsApp
+4151: Product shared prodlisting card Facebook
+4152: Product shared prodlisting card Twitter
+4153: Product shared lms WhatsApp
+4156: Product shared dashboard Facebook
+4157: Product shared dashboard Instagram
+4158: Product shared dashboard LinkedIn
+4159: Product shared dashboard Twitter
+4160: Product shared hamburger Facebook
+4161: Product shared hamburger Instagram
+4162: Product shared hamburger LinkedIn
+4163: Product shared hamburger Twitter
+4164: Product shared prodlisting header facebook
+4165: Product shared prodlisting header instagram
+4166: Product shared prodlisting header linkedin
+4167: Product shared prodlisting header twitter
+4168: Product shared prodlisting card instagram
+4169: Product shared prodlisting card linkedin
+4170: Product shared lms facebook
+4171: Product shared lms instagram
+4172: Product shared lms linkedin
+4173: Product shared lms twitter
+4174: Product shared proddetail WhatsApp
+4175: Product shared proddetail facebook
+4176: Product shared proddetail instagram
+4177: Product shared proddetail linkedin
+4178: Product shared proddetail twitter
+4179: Recent buylead - filter
+4180: Relevant buylead - filter
+4181: Catalog shared dashboard WhatsApp
+4182: Catalog shared dashboard Facebook
+4183: Catalog shared dashboard nopdp Facebook
+4184: Catalog shared hamburger WhatsApp
+4231: Get Best Price Clicked
+4232: Call Now Unidentified
+4233: Call Now identified
+4280: PDP Get Best Price Clicked
+4281: PDP Recommended Products
+4282: Get Best Price'  Clicked
+4298: Location Search
+4318: Contact buyer now
+4319: Similar search CTA
+4320: Not relevant CTA
+4321: Submit
+4322: Star icon
+4327: MyProfileMDCBannerClick
+4328: BizfeedMDCBannerClick
+4329: BMCMDCBannerClick
+4330: DashboardMDCBannerClick
+4331: MyProductsMDCBannerClick
+4332: BuyNowAfterMyProfileSubscriptionBanner
+4333: BuyNowAfterBizfeedSubscriptionBanner
+4334: BuyNowAfterBMCSubscriptionBanner
+4335: BuyNowAfterMyProductsSubscriptionBanner
+4336: BuyNowAfterDashboardSubscriptionBanner
+4337: SellerToolsClickonDashboard
+4338: BuyNowAfterSellerToolsSubscriptionBannerDashboard
+4339: SellerToolsClickonHamburger
+4340: BuyNowAfterSellerToolsSubscriptionBannerHamburger
+4341: BLListingMDCBannerBuyNowClick
+4342: ViewMDCBannerBLListingClick
+4343: AddProductactivejourneyBuyNowClick
+4344: ViewDataPoweredAddProduct
+4345: ClickDataPoweredAddProduct
+4346: EditProductactivejourneyBuyNowClick
+4347: ViewDataPoweredEditProduct
+4348: ClickDataPoweredEditProduct
+4349: BuyNowClickBMCReply
+4350: ViewDataPoweredBMCReply
+4351: ClickDataPoweredBMCReply
+4352: BuyNowClickSingleBLSubscriptionBanner
+4353: ViewSubscriptionScreenAfterBLPurchaseAttempt
+4354: NeedHelpCTAClickSubscriptionScreen
+4355: BuyNowMonthlyAfterMyProfileSubscriptionBanner
+4356: BuyNowMonthlyAfterBizfeedSubscriptionBanner
+4357: BuyNowMonthlyAfterBMCSubscriptionBanner
+4358: BuyNowMonthlyAfterMyProductsSubscriptionBanner
+4359: BuyNowMonthlyAfterDashboardSubscriptionBanner
+4360: BuyNowMonthlyAfterSellerToolsSubscriptionBannerDashboard
+4361: BuyNowMonthlyAfterSellerToolsSubscriptionBannerHamburger
+4362: AddProductactivejourneyBuyNowMonthlyClick
+4363: EditProductactivejourneyBuyNowMonthlyClick
+4364: BuyNowMonthlyClickBMCReply
+4371: App LMS Reply
+4373: App My Profile
+4374: App Edit Profile
+4375: App BL Balance
+4376: App Seller Dashboard
+4377: App Hamburger Menu
+4378: App BL Consume
+4379: App add product
+4380: App Suggested Action
+4493: Specification MCAT Page
+4494: ContactBuyerNowBuyNowClick
+4495: ViewSubscriptionPlan
+4496: SubscriptionPlanBuyNowClick
+4497: ViewBuyLeadBalanceGetMoreBuyLeads
+4498: BuyLeadBalanceGetMoreBuyNowClick
+4499: ViewBuyLeadBalanceSellerDashBoard
+4500: SellerDashBoardBuyLeadBalanceBuyNowClick
+4501: ViewSubscriptionScreenSOI
+4502: SOIBuyNowClick
+4503: BuyNowMonthlyContactBuyerNowClick
+4504: BuyNowMonthlySubscriptionPlanClick
+4505: BuyNowMonthlyBuyLeadBalanceGetMoreBuyLeadClick
+4506: BuyNowMonthlySellerDashBoardBuyLeadBalance
+4507: BuyNowMonthlySOIClick
+4511: Seller Landing from HM
+4512: Seller Landing from Mailer
+4513: Seller Landing from SOI
+4514: Seller Landing Default
+4515: Seller Landing from Single BL IND
+4516: Seller Landing from Single BL EXP
+4517: Seller Landing from HM Monthly Buy Now
+4518: Seller Landing from Mailer Monthly Buy Now
+4519: Seller Landing from SOI Monthly Buy Now
+4520: Seller Landing Default Monthly Buy Now
+4521: Seller Landing from Single BL Monthly Buy Now IND
+4522: Seller Landing from Single BL Monthly Buy Now EXP
+4523: Seller Landing from HM Yearly Buy Now
+4524: Seller Landing from Mailer Yearly Buy Now
+4525: Seller Landing from SOI Yearly Buy Now
+4526: Seller Landing Default Yearly Buy Now
+4527: Seller Landing from Single BL Yearly Buy Now IND
+4569: Click on Whatsapp on MSite
+4658: IP City
+4659: Lat-Long City
+4660: GLB City
+4663: Ajax PDP Rating
+4664: Ajax widget Related Product
+4665: Ajax widget Wrapper Service
+4666: Ajax User Last Seen
+4667: Ajax Identified All version
+4668: Ajax STD Product
+4669: Ajax Prd Last Seen
+4670: Ajax Get ISQ
+4671: Ajax Search Wrapper
+4672: Ajax Company Rating
+4678: Buyer_Dashboard_city_change
+4679: BMC Listing Buyer
+4680: BMC Listing Seller
+4681: BMC Conversation Buyer
+4682: BMC Conversation Seller
+4683: BMC ContactDetail Buyer
+4684: BMC ContactDetail Seller
+4685: Call CTA
+4686: Unread/Archived
+4687: Hide Contact
+4688: Block User
+4689: Send Reply Buyer
+4690: Send Reply Seller
+4691: QRF Popup triggered
+4692: QRF Popup submitted
+4693: Rating Submitted
+4694: Seller Relevance Feedback
+4695: Attachment Uploaded
+4696: User marked as favourite
+4705: Need help Subscription plan
+4708: Search Manual City
+4735: Seller Ads
+4738: Show Ad Landing PDP Page
+4741: GetGlbcity
+4742: City ID To City Name
+4743: PDP SearchRecomm
+4744: PDP City Suggestor
+4745: PDP City Distance Calculation
+4746: Related Products
+4747: City Name to City ID
+535: Show Subscription Plans
+538: Search Buy Lead
+539: Show FCP / MDC Page
+543: Show Enquiry Inbox
+545: Search Location
+548: Show Mcat Page
+557: User Login Page
+558: Show Dashboard
+559: Show Product Details Page
+560: M.IM Search
+562: Enquiry Submitted
+563: Enquiry Submitted
+565: Reply Enquiry
+566: Enquiry Submitted
+567: Enquiry Submitted
+568: M.IM Search
+569: Show FCP / MDC Product / Category Page
+570: Show Enquiry Details Page
+571: Show Latest BL Page
+572: Auto Login
+573: View Buy Leads By Categories
+574: Show Latest BL Page
+575: Show FCP / MDC Page
+577: Show FCP/MDC Products Page
+594: Show IM Mobile Home Page
+607: Paid Client Feedback Form For Query Already Purchased
+660: Show FCP / MDC Inside Page
+675: Show SubCategory Page
+709: Viewed Menu Page
+711: Show Post Buy Requirement Page
+712: Show Product Page
+713: Product Pushed To Top
+714: Select Location
+715: Show Contact Us Page
+717: Inline Enriched Form Submitted In Identified Mode
+719: Inline Enquiry Submitted In Identified Mode
+721: Enquiry Submitted In Identified Mode
+723: Inline Enriched Form Submitted In Non Identified Mode
+724: Inline Enquiry Submitted In Non Identified Mode
+725: Enquiry Submitted In Non Identified Mode
+731: Join Free Form
+732: Forgot Password Mail Sent
+734: Not Me Clicked
+738: Track Click To Call Button Clicked
+739: Track Click On Banner
+740: Buy Lead Purchased
+782: Show About Us Page
+783: Show FCP/MDC Index Page Through ASTBUY Mailer
+784: Show Sub Category Page
+785: Clicked On Post Buy Requirement Button
+788: Show All Latest Buy Leads
+793: Join Free Button Clicked
+794: Login Button Clicked
+803: Offer Deleted
+804: Show Forgot Password Page
+805: Show Restricted Directories Page
+806: Show Order Summary Page To Buy A Package
+808: Send Enquiry Button Clicked
+817: GET Enquiry Request
+826: City Impcat Page
+862: Show Enquiry Inbox With Pagination
+864: User dashboard Page
+865: Post Request
+912: Show SubCategory Page
+917: My Profile
+923: Location Search
+926: No Mobile App Found
+930: Product Added
+931: Product Image added
+932: Help request
+933: Product Edited
+1057: Show Mobile Verfication Popup
+1073: Reply Enquiry
+1078: Reply Addressbook
+1081: Show Addressbook Detail Page
+109: Show Post Buy Requirement Page
+1140: Primary Email Changed From Dashboard
+1144: Buyer Requirement Feedback Form
+1208: Enquiry Viewed
+1217: Send Enquiry - Attachment Uploaded
+1238: Show Attach Option Iframe on Reply Enquiry Page
+1304: Autologin Request
+1494: Server status
+1535: Upload Image
+1536: Post BL
+1537: Show Manage Open Buy Requirements Page
+1538: User Details ON Post Buylead
+1541: Buyer Confirmed or Updated his Buy Requirement as a response to some mail
+1542: Show Contact Detail Page
+1545: Head Office Contact detail Updated
+1552: Show Contact Profile Page
+1553: My Product Buyed
+1555: Change Password
+1556: Password Changed
+1564: Activity Log for User
+1565: Buy Requirement Reposted
+1566: Products We Buy Updated
+1567: Upload Glusr Image From Contact Detail
+1575: Buy Requirement Closed Clicked
+1576: Push to TOP
+1578: Post BL
+1580: Update Requirement in Waiting
+1582: Product We Buy Updated
+1583: My Favourites
+1584: My Settings
+1585: Product We buy
+1657: Recommended Products on Dashboarrd
+1658: Check Mobile Status
+1680: Thankyou Form
+169: Show Dashboard Page
+1722: Delete Product
+1723: Update Product
+1724: ADD Product
+1728: Verify and Update Buy Requirement
+1772: Validation Check
+1783: To Send Reply from enquiry popup box
+1796: Verification OTP send
+1797: Verify Email Send
+1798: Alerts Disable/Enabled in Privacy Settings
+1799: To Fetch Activities on Activity wall
+1800: To Show preferred products on Dashboard
+1803: Add a new preferred product from dashboard page
+1804: To fetch Product on Product we buy page
+1850: Verfy Unique E-Mail
+1851: Verfy Unique Number
+1862: View All Contacted Suppliers
+1866: Categories of Interest Page
+1869: Click on View More Categories
+1890: Login
+1949: Fetch Perferred Products on Dashboard
+1967: To fetch data on dashboard
+1972: Trending Products
+1973: Profile Image Load
+1976: Display Favourite Products
+1977: Display Recent Searches
+1978: Display Top Mcats
+1979: Display ALL Products
+205: Show Restricted Directories Page
+2068: Template Request
+2069: Load Message Center
+2070: Products You Viewed
+2071: Show Payments
+2072: Show Past Searches
+2135: Get User Recommendations
+2136: Get Message Read Count
+2246: Internal Request
+239: Show How to Enable JavaScript Page
+258: Show Dashboard Page
+291: Load TinyMCE Editor On Add Product Page
+4037: Update user details
+4038: Dashboard Spiral request
+4039: Edit profile other request/ details
+4040: VBB details
+4041: ManageBL Delete
+4042: Load Rating Page
+4043: Setting disable user
+4044: Setting email preference change
+4045: Load VBB Page
+4046: Load Edit profile Page
+4413: BL form Step 1
+4414: BL form Step 2
+4415: BL form Final Step
+4482: MY-home-search
+4483: MY-home-FC
+4484: MY-home-requestQoute
+4485: MY-home-FR
+4486: MY-home-POI
+4487: MY-home-MyOrders
+4488: MY-PYR
+4489: MY-VBB
+4490: MY-MyOrders
+4491: MY-POI
+4492: MY-RC
+4559: Close buyLead requirement
+4560: Get Contact List
+4561: Get Conversation Data
+4562: User Order Details
+4563: User Contact Details
+4564: Get Products Detail List
+4565: Rate a supplier
+4566: Search a contact
+4567: Send a reply
+4568: Details of individual contact(Product View)
+4570: Display header Rating
+4571: Change Password
+4572: Otp verification
+4573: Disable account
+4574: User login
+4575: Recommended categories
+4576: My Activities
+4577: Past Searches
+4578: Product of Interest
+4579: Setting Preference
+4580: Email Communication Preferences
+4581: Email Re-Subscribe
+4582: Email Unsubscribe
+4583: Save Profile
+4584: Update Mobile Number
+4585: Bank update
+4586: Check GST
+4587: Delete Offer
+4588: Submit rating
+4589: Delete user
+4590: Add Product Service
+4591: Sign Out
+4592: Update Profile
+4593: Upload Profile Image
+4594: My Messages
+4595: View More
+4596: Post new Requirement
+4597: Internal request
+908: Gmail Promotion
+934: Show My Contacts Page
+2159: Enquiry Detail Screen
+2160: Enquiry Detail-Manage Buy Requirement Screen
+2161: Product Detail Screen
+2162: Add Product Screen
+2163: APP Settings screen
+2164: Location Preferences Filter Screen
+2165: Edit Product Screen
+2166: ADD Product Preview Screen
+2167: Edit profile screen
+2168: My Enquiries Screen
+2169: My Favourites Screen
+2170: My Products List
+2171: My profile screen
+2172: OTP Screen To Enter Mobile Number
+2173: New User Details
+2174: OTP Verification Screen
+2175: Buyer Dashboard Screen
+2176: Supplier Dashboard Screen
+2177: Company Details Screen
+2178: List of all contacts of a user
+2179: Message Center Contact Listing
+2180: Add Contacts
+2181: OTP Screen To Enter Mobile Number
+2182: Who Viewed Your Catalog
+2183: Product Impcat Page
+2184: Search Product
+2185: OTP Verification
+2186: User Verification
+2187: Buyer Message Center Contact Details
+2188: Message Center-Contact-Details
+2189: Message Center Conversations
+2190: Conversations Listings
+2191: Add Product Details
+2192: MBR Screen
+2193: MBR Details
+2194: Send Enquiry
+2195: Relevant buylead
+2196: Recent buylead
+2197: Shortlisted buylead
+2199: Send Enquiry
+2200: MBR ISQ Screen
+2201: My Profile
+2202: Repost MBR
+2203: Send Enquiry
+2204: Post Buy Requirement
+2205: Post Buy Requirement
+2206: Similar Leads
+2207: Leads Purchase
+2208: Products Recommended
+2220: Browse By Industries-Subcat Page
+2221: Browse By Industries-MCAT Page
+2222: Daily Business Summary
+2223: View PNS Settings
+2224: Add Products
+2225: Edit Products
+2226: Search BuyLeads
+2227: Scroll on Search Screen
+2228: Rate Seller
+2292: Edit Product-Details changed
+2293: Edit Profile-Details changed
+2296: SOI Click on Sell-on-Indiamart
+2302: Internal Request
+2304: SOI Seller Registered
+2306: BuyLead_IamInterested
+2350: Pitching MDCviaDefault
+2351: Pitching MDCviaBuylead
+2352: Pitching MDCviaSellerTools
+2353: BulkProduct
+2354: Lead Manager PDF quotation
+2355: Pitching MDCviaBL
+2356: Pitching MDCviaMessageCentre
+2357: Latest Tender Page
+2358: Pitching MDCviaSellOnIM
+2359: Pitching MDCviaEditProduct
+2360: Pitching MDCviaSearchBL
+2361: Pitching MDCviaAddProduct
+2362: Pitching MDCviaMessageCenter
+2363: Pitching MDCviaMainMenu
+2364: Pitching MDCviaMyProducts
+2365: Pitching MDCviaSupplierDashboardYourCredits
+2366: Pitching MDCviaSUPPLIERDASHSUBSCRIPTIONPAYMENTSCREEN
+2367: Latest Buylead Page
+2368: Pitching MDCviaSimilarleads
+2369: Pitching MDCviaCreditsPopup
+2370: Lead Manager chat screen
+2371: Who Viewed Catalog screen
+2372: Enquiry List screen
+2373: Lead Manager Profile screen
+2374: Daily Business summary page
+2375: Similar lead full screen(purchase)
+2376: Call_Now_Clicked_Android
+2377: User shown buyer intent in onboarding screen
+2378: OTP Enter more details screen
+2379: Thankyoupage_BL
+2380: Android_Standard_Product_Detail_Page
+2381: Android_PBR_ISQ_Screen
+2382: Call_Now_Clicked_Android
+2383: OTP Enter more details screen
+2513: SOI Company Name Click
+2514: SOI Add Product Click
+2515: SOI Add GSTIN Click
+2516: SOI Add Address Click
+2517: SOI Email Click
+2523: Default Buyer Screen
+2531: MDCBuyNowviaEditProduct
+2532: MDCBuyNowviaAddProduct
+2533: MDCBuyNowviaSellOnIM
+2534: MDCBuyNowviaDefault
+2535: MDCBuyNowviaMessageCentre
+2536: MDCBuyNowviaMessageCenter
+2537: MDCBuyNowviaMainMenu
+2538: MDCBuyNowviaBuylead
+2539: MDCBuyNowviaSellerTools
+2540: MDCBuyNowviaMyProducts
+2541: RetailBuyNowviaBL
+2577: MDC Buy Now click via Supplier Dashboard Your Credits
+2578: MDC Buy Now click via Similarleads
+2579: MDC Buy Now click via SUPPLIER_DASH_SUBSCRIPTION_PAYMENT_SCREEN
+2580: MDC Buy Now click via CreditsPopup
+2581: Retail Buy Now Click via SearchBL
+2582: Retail Buy Now Click via Similarleads
+2583: MDC Buy Now click via BL
+2665: Default Seller Screen
+2666: Default Screen
+4023: MessageCenter-Mini-Catalog
+4024: Message Center-Pdf-Quotations
+4025: MDCBuyNowviaSearchBL
+4026: Standard Product Detail
+4027: Pitching MDCviaBuyleadDirect
+4028: Pitching MDCviaMessageCentreDirect
+4029: Pitching MDCviaEditProductDirect
+4030: Pitching MDCviaAddProductDirect
+4031: MDCBuyNowviaEditProductDirect
+4032: MDCBuyNowviaAddProductDirect
+4033: MDCBuyNowviaMessageCentreDirect
+4154: Recent buylead - filter
+4155: Relevant buylead - filter
+4185: Message Center-Mini-Catalog
+4186: Free Seller Reply To Enquiry
+4187: My Profile Screen
+4188: LMS Chat Share Product
+4189: Edit Profile Screen
+4190: Sell on IndiaMART
+4191: Bulk Add Product Screen
+4192: Product Listing Screen
+4193: Seller Dashboard
+4194: Navigation Drawer
+4195: Buyer Message Center Buyer Profile
+4198: Search
+4199: MDC banner click on Bizfeed in App
+4200: MDC BuyNow click from MDC Bizfeed banner in App
+4201: Single India BL Buy Now click from App
+4203: Renew Now Click after LMS Reply in App
+4204: Renew Now Click from My Profile
+4205: Renew Now Click after Editing Product
+4206: Renew Now Click from Buylead balance
+4207: Renew Now click from Seller Dashboard
+4208: Renew Now click from Hamburger Menu
+4209: Renew Now click after Buylead Consumption
+4210: Renew Now click after Adding Product
+4211: Renew Now click from Suggested Actions
+4213: MDC Monthly BuyNow Click from Android App
+4214: view similar buyleads
+4215: Explore more buyers
+4216: Shortlist
+4217: NI
+4218: Contact Buyer
+4220: MDC Banner Click on My profile in app
+4221: MDC Bynow click from MDC  My profile Banner in app
+4225: Need Help Subscription plan screen Click from Android App
+4226: Export BL Package Purchase from Latest BL Screen
+4227: Export BL Package Purchase from Search BL Screen
+4228: India BL Package purchase for Paid Sellers
+4229: Verified Exporter Purchase from Latest BL Screen
+4230: Verified Exporter Purchase from Search BL Screen
+4275: Retail BuyNow Click via Bizfeed
+4276: MDC Buy Now click via Bizfeed
+4277: MDC Monthly BuyNow Click from Android App via Bizfeed
+4278: Export BL Package Purchase from Bizfeed Screen
+4279: Verified Exporter Purchase from Bizfeed Screen
+4283: Premium Service Click of Paid Seller
+4293: Free_Supplier_Notif_ViewLead
+4294: Free_Supplier_Notif_ConBuyer
+4297: Buy lead listing banner
+4302: Catalog Shared From Bizfeed Screen Free Seller
+4303: Custom Reply Sent From Bizfeed Screen Free Seller
+4304: Time To Talk From Bizfeed Screen Free Seller
+4305: Catalog Shared From Bizfeed Screen Product of Interest Popup Free Seller
+4306: Time To Talk From Bizfeed Screen Product Of Interest Popup Free Seller
+4307: Catalog Shared From Bizfeed Screen Visited Popup Free Seller
+4308: Time To Talk From Bizfeed Screen Visited Popup Free Seller
+4309: Call From Bizfeed Screen Free Seller
+4310: Buyer Name Clicked From Bizfeed Screen Free Seller
+4311: Company Name Clicked From Bizfeed Screen Free Seller
+4312: Contact buyer now
+4313: Start icon
+4314: Hide icon
+4315: Not relevant CTA
+4316: Submit
+4317: Similar leads cards CTA
+4598: Free_Supplier_Notif_Contact Buyer_SubScreen_View
+4599: Free_Supplier_Notif_Contact Buyer_SubScreen_RetailClick
+4600: Free_Supplier_Notif_Contact Buyer_SubScreen_MonthlyClick
+4601: Free_Supplier_Notif_Contact Buyer_SubScreen_YearlyClick
+4604: Click on Notification outside CTAs
+4605: Free_Supplier_Notif_ViewLead_SimilarLeadsPageView
+4606: Free_Supplier_Notif_ViewLead_SimilarLeads_BackButton_BLPageView
+4607: Free_Supplier_Notif_ViewLead_SimilarLeads_BackButton_BLPage_ContactBuyerClick
+4608: Free_Supplier_Notif_ViewLead_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreenView
+4609: Free_Supplier_Notif_ViewLead_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreen_RetailClick
+4610: Free_Supplier_Notif_ViewLead_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreen_MonthlyClick
+4611: Free_Supplier_Notif_ViewLead_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreen_YearlyClick
+4612: Free_Supplier_Notif_ViewLead_SimilarLeads_ContactBuyerClick
+4613: Free_Supplier_Notif_ViewLead_SimilarLeads_ContactBuyer_SubScreenView
+4614: Free_Supplier_Notif_ViewLead_SimilarLeads_ContactBuyer_SubScreen_RetailClick
+4615: Free_Supplier_Notif_ViewLead_SimilarLeads_ContactBuyer_SubScreen_MonthlyClick
+4616: Free_Supplier_Notif_ViewLead_SimilarLeads_ContactBuyer_SubScreen_YearlyClick
+4617: Free_Supplier_Notif_OutsideClick_SimilarLeadsPageView
+4618: Free_Supplier_Notif_OutsideClick_SimilarLeads_BackButton_BLPageView
+4619: Free_Supplier_Notif_OutsideClick_SimilarLeads_BackButton_BLPage_ContactBuyerClick
+4620: Free_Supplier_Notif_OutsideClick_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreenView
+4621: Free_Supplier_Notif_OutsideClick_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreen_RetailClick
+4622: Free_Supplier_Notif_OutsideClick_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreen_MonthlyClick
+4623: Free_Supplier_Notif_OutsideClick_SimilarLeads_BackButton_BLPage_ContactBuyer_SubScreen_YearlyClick
+4624: Free_Supplier_Notif_OutsideClick_SimilarLeads_ContactBuyerClick
+4625: Free_Supplier_Notif_OutsideClick_SimilarLeads_ContactBuyer_SubScreenView
+4626: Free_Supplier_Notif_OutsideClick_SimilarLeads_ContactBuyer_SubScreen_RetailClick
+4627: Free_Supplier_Notif_OutsideClick_SimilarLeads_ContactBuyer_SubScreen_MonthlyClick
+4628: Free_Supplier_Notif_OutsideClick_SimilarLeads_ContactBuyer_SubScreen_YearlyClick
+4677: Buyer_Dashboard_city_change
+4697: Chat_On_WhatsApp_Hamburger
+4698: Feedback_Hamburger
+4699: WhatsApp_Tele
+4700: Email_Tele
+4701: Call_Tele
+4702: Email_Sales
+4703: Call_Sales
+4706: Need help Subscription plan
+4748: SubscriptionPlanFooterIcon
+4751: TrustSEAL buy now
+4752: Maximiser buy now
+4753: TrustSEAL buy now via BL
+4754: Maximiser buy now via BL
+
+
+
+
+

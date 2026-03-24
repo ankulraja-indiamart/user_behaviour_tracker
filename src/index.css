@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
+
+:root {
+  --canvas-dark: #301f13;
+  --canvas-mid: #6b4424;
+  --canvas-light: #c39062;
+
+  --text-primary: #2f1d10;
+  --text-soft: #61432b;
+  --surface: #fffaf2;
+
+  --font-body: 'Manrope', 'Segoe UI', sans-serif;
+  --font-heading: 'Merriweather', Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: radial-gradient(circle at 8% 12%, #d9aa7a 0%, rgba(217, 170, 122, 0) 32%),
+    radial-gradient(circle at 90% 8%, #8d5b34 0%, rgba(141, 91, 52, 0) 28%),
+    linear-gradient(140deg, var(--canvas-dark) 0%, var(--canvas-mid) 56%, var(--canvas-light) 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: auto;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(6px);
+}
+
+body::before {
+  width: 340px;
+  height: 340px;
+  background: rgba(255, 234, 202, 0.15);
+  top: -100px;
+  left: -80px;
+  animation: floatAura 9s ease-in-out infinite;
+}
+
+body::after {
+  width: 260px;
+  height: 260px;
+  background: rgba(74, 42, 16, 0.26);
+  bottom: -90px;
+  right: -70px;
+  animation: floatAura 12s ease-in-out infinite reverse;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+@keyframes floatAura {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(12px) scale(1.05);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}

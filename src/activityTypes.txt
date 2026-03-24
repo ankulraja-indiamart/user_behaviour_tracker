@@ -1,0 +1,11 @@
+Activity Types Already Added
+
+Android
+IOS
+DIR
+EXPORT
+SELLERMY
+IM
+IMOB
+WHATSAPP
+MY
