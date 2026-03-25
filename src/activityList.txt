@@ -1743,6 +1743,231 @@
 4753: TrustSEAL buy now via BL
 4754: Maximiser buy now via BL
 
+1629: Static Site Home Page
+1630: Search Location On IP
+1631: Inside Pages Surfing
+1632: Tradeseal Page Ajax Request
+1633: Show Static Site Enquiry Page
+1634: Auto Fetch Request
+1635: View Profile
+1636: Contact Us
+1637: About Us page
+1638: Company Video Page
+1639: Media Centre Page
+1640: News and Events Page
+1648: Enquiry Submitted From Product Page Of Mobile
+1650: STDW Home Page
+1662: Company infrastructure details
+1663: Company Financials
+1664: Company Career
+1665: Company Clients
+1666: Taxi Service or Radio Cab
+1667: Job Seekers
+1668: Online Registration
+1669: Company Contact Details
+1670: Current Job Openings
+1671: Company Brochure
+1672: Company Facilities
+1673: Quality Checks And Standards
+1730: Enquiry Submitted Post Request
+1731: Enquiry SMS Sent Post Request
+1732: View More Products Post Request
+1733: Enquiry Posted from PCAT
+1734: Press Release
+1735: Thankyou Page
+1736: Download PDFs
+1759: Head request to STDW
+1765: Products Page
+1766: Show Investors Description
+1767: Show MY Catalog Page
+1768: Show Notice & Intimation Page
+1793: WURFL Request on STDW
+1863: STDW Inside Pages
+1897: Login
+1907: Load country dropdown
+1974: Submit Send Email
+1997: Load STDW Home Page
+2237: Internal Request
+2274: Search Page
+2664: Internal Request
+
+2340: Home page
+2341: About Buyleads
+2342: About Indiamart
+2343: About Lead Manager
+2344: About Pay with IndiaMART
+2345: About Pay with IndiaMART
+2346: Add/Update/View Page Details
+2347: Advantages of Indiamart
+2348: Buyer Help
+2349: Buylead Filter
+2421: Buyleads
+2422: Email Information
+2423: Email Sync
+2424: Enquiry
+2425: Free Catalog Page
+2426: Paid services
+2427: General help
+2428: GST Related Queries
+2429: Indiamart Account Related Queries
+2430: IMA
+2431: Labelling
+2432: Lead manager
+2433: Location preference
+2434: Manage catalog
+2435: Manage company info
+2436: Manage Contacts
+2437: Manage products
+2438: Mobile Number Information
+2439: My Buy Leads
+2450: Notes & Replies
+2451: Paid services of indiamart
+2452: Payment and Bank Details
+2453: Pay With IndiaMART for Buyers
+2454: Pay with IndiaMART Payment
+2455: Pay With IndiaMART for Sellers
+2456: Preferred number service
+2457: Privacy & complaints
+2458: Product groups
+2459: Product Pricing
+2460: Product related queries
+2461: Queries regarding Paid Services
+2462: Quotation
+2463: Registration
+2464: Reminder
+2465: Search related queries
+2466: Security & notifications
+2467: Security & notifications
+2468: Seller general support
+2469: Seller help
+2470: Seller rating
+2471: Seller related queries
+2472: Seller tips
+2473: Tenders
+2474: Add/Update/View Profile Details
+2475: Business Card
+2476: Business Feeds
+2477: Seller Related Queries
+2478: Seller Tips
+2479: About PWIM
+2480: PNS
+2481: About Buylead
+2482: Careers
+2483: Privacy and Complaints
+2484: Notes and Replies
+2485: Indiamart Seller Panel
+2486: My Buy Leads
+2487: About Buy leads
+2488: Buy Lead Filters
+2489: Security and Notifications
+2490: Registration
+2491: Privacy and Complaints
+2492: Indiamart Advantage Program (IMA)
+2493: Lead Management System
+2494: Advantages of Indiamart
+2495: Pay with IndiaMART Payment
+2496: Category About Pay with IndiaMART
+2497: Email ID Information
+2498: Tender
+2499: Seller category
+2500: Chatbot
+2501: Covid helpline
+2502: Customercare number
+2503: Indiamart Seller Panel
+2571: Product updates
+2572: Product updates
+2573: Product updates
+2574: Product updates
+2575: Taxes
+2576: Internal Activity
+2608: Internal Activity
+2660: Internal Request
+2661: Internal Request
+2668: BuyLead Allocation Related Queries
+3078: Complaint Form
+3079: Feedback
+3080: Create User
+3081: Feedback Form
+3082: Payment Related
+3083: About Pay Seller
+3084: CRM Integration
+3085: Video Gallery
+3086: Video Paid Services
+3087: Fallback Intent
+3088: Getting Started on IM Cat
+3089: Add/Update View Page Details Cat
+3090: Help m.im Cat
+3091: Help Forums
+3092: Indiamart Buyer Panel Cat
+4124: Sell on IM
+4125: Login to SellerIM
+4126: International Payment
+4127: Enhancements in LeadManager
+4128: IM Bug Bounty
+4129: Fraud user Alert
+4202: New Premium Services Card for BL Alert
+4212: Schedule Demo meeting
+4239: Help_call_GST_no
+4240: Help_call_GST_yes
+4241: Help chatbot interested
+4478: HelpChatbot
+4508: From: HELPIM - Comments: GST : no [Unidentified Mode]
+4509: From: HELPIM - Comments: GST : yes  [Unidentified Mode]
+4510: From: HELPIM - Boost Your Business With Us
+
+1934: Step 1 Desktop Site
+1935: Select Gateway
+1936: step 3 Mobile site
+1937: step 1 Mobile site
+1938: step 4 Mobile site
+1939: step 5 Mobile site
+1940: Paywith home
+1941: step 2 Mobile site
+1945: Step 2 Desktop Site
+1946: Step 3 Desktop Site
+1947: Step 4 Desktop Site
+2209: Login
+2231: Internal request
+2232: Internal request
+
+4395: Call_Now_Clicked_Andweb
+4707: Free_Seller_View_Inline_Banner_AndWeb
+
+4366: Partner page
+4367: Landing page
+4368: Show Popular Partners
+4369: User Intent Generated
+4370: User Enquiry Posted
+
+4381: Related products section in pdp page
+4384: Shoppping IM homepage
+4385: Related category section in pdp page
+4386: Seller product listing page
+4387: Get ISQ in BL form listing page
+4388: Autosuggest results in search bar
+4389: Get MCAT of product selected from autosuggest
+4390: Seller page pagination request
+4393: PDP url in shopping
+4394: Search results page
+
+4444: WhatsApp Outbound
+4451: WhatsApp Outbound
+4452: WhatsApp Outbound
+4453: WhatsApp Outbound
+4454: FLPNS
+4455: Outbound Call
+4456: RCS
+4457: RCS
+4458: RCS
+4459: RCS
+
+4642: User Landing on Photo Search
+4643: Photo Upload Success
+4644: Photo Search Results Fetched
+4645: Photo Search Results Clicked (Image, Name, Price) (PDP Redirection)
+4646: VLM Title Search Clicked (Search City/All India Page Redirection)
+4647: MCAT Tags Clicked (MCAT Page Redirection)
+
 
 
 

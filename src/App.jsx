@@ -4,6 +4,7 @@ import ProductHoverPreview from './components/previews/ProductHoverPreview'
 import SearchInlinePreview from './components/previews/SearchInlinePreview'
 import EnquiryIntentCard from './components/previews/EnquiryIntentCard'
 import CompanyInlinePreview from './components/previews/CompanyInlinePreview'
+import DirectImagePreview from './components/previews/DirectImagePreview'
 import {
   buildGenericActionText,
   buildJourneyFromLogs,
@@ -503,7 +504,7 @@ function App() {
                             : step.search_city
                               ? `User searched "${step.keyword}" in ${step.search_city}`
                               : `User searched "${step.keyword}"`
-                          : 'User performed a search'
+                          : step.type || 'User performed a search'
                         const pdpActionText = 'User Saw PDP page'
                         const productActionName = step.product || null
                         const productActionText = productActionName
@@ -516,8 +517,36 @@ function App() {
                           : 'User viewed a product'
                         const genericActionText = buildGenericActionText(step)
                         const supplierActionText = 'Open company page'
+                        const requestPathValue = String(step.request_path || '').trim()
+                        const imageSourceValue = String(step.image_source_url || '').trim()
+                        const hasDirectImageExtension = (value) =>
+                          /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:[?#].*)?$/i.test(value)
+                        const normalizeDirectImageUrl = (value) => {
+                          const trimmed = String(value || '').trim()
+                          if (!trimmed || !hasDirectImageExtension(trimmed)) {
+                            return null
+                          }
+
+                          if (/^https?:\/\//i.test(trimmed)) {
+                            return trimmed
+                          }
+
+                          const relativePath = trimmed.replace(/^\/+/, '')
+                          if (!/^data\d+\//i.test(relativePath)) {
+                            return null
+                          }
+
+                          return `https://d1qsk4aqkpwap4.cloudfront.net/${relativePath}`
+                        }
+                        const directImagePreviewUrl =
+                          normalizeDirectImageUrl(requestPathValue) ||
+                          normalizeDirectImageUrl(imageSourceValue)
                         const isProductRelated =
                           Boolean(step.product_id) || step.is_product_view || step.is_image_view
+                        const shouldRenderProductPreview =
+                          !directImagePreviewUrl &&
+                          isProductRelated &&
+                          Boolean(step.product_url || step.image_product_url)
                         const actionText = step.is_enquiry
                           ? enquiryActionText
                           : step.is_mcat_page
@@ -535,6 +564,8 @@ function App() {
                                       : genericActionText
                         const actionUrl = step.is_enquiry
                           ? step.product_url || step.page_url || step.service_url
+                          : directImagePreviewUrl
+                            ? directImagePreviewUrl
                           : step.is_search
                             ? buildSearchUrl(
                               step.request_path,
@@ -544,11 +575,9 @@ function App() {
                             )
                             : step.is_supplier_view
                               ? step.company_url || step.page_url
-                              : isProductRelated
-                                ? step.product_url
-                                : step.is_image_view
-                                  ? step.image_product_url
-                                  : step.page_url
+                              : shouldRenderProductPreview
+                                ? step.product_url || step.image_product_url
+                                : step.page_url
                         const itemStyle = {
                           '--session-item-bg': sessionPalette.itemBg,
                           '--session-item-border': sessionPalette.itemBorder,
@@ -566,7 +595,16 @@ function App() {
                             <span className="timeline-step">#{stepIndex + 1}</span>
                             <div className="timeline-content">
                               {actionUrl ? (
-                                step.is_enquiry ? (
+                                directImagePreviewUrl ? (
+                                  <>
+                                    <p className="timeline-action-link">
+                                      <a href={actionUrl} target="_blank" rel="noreferrer">
+                                        {actionText}
+                                      </a>
+                                    </p>
+                                    <DirectImagePreview imageUrl={directImagePreviewUrl} />
+                                  </>
+                                ) : step.is_enquiry ? (
                                   <>
                                     <p className="timeline-action-link">
                                       <a href={actionUrl} target="_blank" rel="noreferrer">
@@ -575,7 +613,7 @@ function App() {
                                     </p>
                                     <EnquiryIntentCard step={step} />
                                   </>
-                                ) : isProductRelated ? (
+                                ) : shouldRenderProductPreview ? (
                                   <>
                                     <p className="timeline-action-link">
                                       <a href={actionUrl} target="_blank" rel="noreferrer">

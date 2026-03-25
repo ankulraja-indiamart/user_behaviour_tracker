@@ -15,6 +15,7 @@ const SYSTEM_ACTIVITY_IDS = new Set([527, 673, 674, 678, 1764, 1841, 1842, 1844,
 
 const SESSION_GAP_MS = 30 * 60 * 1000
 const RELATED_ACTION_MERGE_WINDOW_MS = 5 * 1000
+const CONSECUTIVE_DUPLICATE_WINDOW_MS = 15 * 1000
 
 const parseDateValue = (value) => {
   const raw = String(value ?? '')
@@ -164,6 +165,10 @@ const buildSearchUrl = (requestPath, modid, refererUrl, domainName) => {
 
   const baseDomain = getDomainFromModidAndReferer(modid, refererUrl, domainName)
   const path = requestPath.startsWith('/') ? requestPath : `/${requestPath}`
+  // Root path does not carry search intent details and should not open a preview tile.
+  if (path === '/') {
+    return null
+  }
   return canonicalizeIndiamartUrl(`https://${baseDomain}${path}`)
 }
 
@@ -191,6 +196,9 @@ const extractPathFromRequestUrl = (requestUrl) => {
   }
 
   const trimmed = String(requestUrl).trim()
+  if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'null') {
+    return ''
+  }
   const methodMatch = trimmed.match(/^[A-Z]+\s+(\S+)\s+HTTP\/[\d.]+$/)
   const path = methodMatch ? methodMatch[1] : trimmed
   return path
@@ -860,6 +868,56 @@ const reduceToPrimaryUserActions = (sortedLogs) => {
   return reduced
 }
 
+const normalizeDuplicateValue = (value) => {
+  return String(value || '').trim().replace(/\s+/g, ' ')
+}
+
+const getDuplicateFingerprint = (log) => {
+  const requestPath = extractPathFromRequestUrl(log?.request_url)
+  return [
+    normalizeDuplicateValue(log?.fk_activity_id),
+    normalizeDuplicateValue(log?.fk_display_title).toLowerCase(),
+    normalizeDuplicateValue(log?.domain_name).toLowerCase(),
+    normalizeDuplicateValue(requestPath),
+    normalizeDuplicateValue(log?.referer),
+    normalizeDuplicateValue(log?.modid),
+    normalizeDuplicateValue(log?.product_disp_id),
+    normalizeDuplicateValue(log?.ctaType),
+  ].join('|')
+}
+
+const removeConsecutiveNearDuplicates = (logs) => {
+  const deduped = []
+
+  for (const log of logs) {
+    const currentTs = parseDateValue(log?.datevalue)?.getTime() ?? null
+    const currentFingerprint = getDuplicateFingerprint(log)
+    const previous = deduped[deduped.length - 1]
+
+    if (!previous) {
+      deduped.push(log)
+      continue
+    }
+
+    const previousTs = parseDateValue(previous?.datevalue)?.getTime() ?? null
+    const previousFingerprint = getDuplicateFingerprint(previous)
+
+    const areSameAction = currentFingerprint === previousFingerprint
+    const timeGapMs =
+      currentTs !== null && previousTs !== null
+        ? Math.abs(currentTs - previousTs)
+        : Number.POSITIVE_INFINITY
+
+    if (areSameAction && timeGapMs <= CONSECUTIVE_DUPLICATE_WINDOW_MS) {
+      continue
+    }
+
+    deduped.push(log)
+  }
+
+  return deduped
+}
+
 const getEntityKey = (step) => {
   if (step.product_id) {
     return `product:${step.product_id}`
@@ -965,7 +1023,8 @@ const buildJourneyFromLogs = (apiPayload) => {
   }
 
   const sortedLogs = flattenAndSortLogs(activity)
-  const dedupedLogs = reduceToPrimaryUserActions(sortedLogs)
+  const reducedLogs = reduceToPrimaryUserActions(sortedLogs)
+  const dedupedLogs = removeConsecutiveNearDuplicates(reducedLogs)
 
   if (dedupedLogs.length === 0) {
     return null
@@ -1405,7 +1464,11 @@ const getActionTypeTagClass = (step) => {
 }
 
 const splitActivityVerbAndTarget = (rawType) => {
-  const normalized = String(rawType || '').trim().replace(/\s+/g, ' ')
+  let normalized = String(rawType || '').trim().replace(/\s+/g, ' ')
+
+  // Some activity labels already include actor text like "User opened ...".
+  // Remove that prefix so we do not render "User opened User opened ...".
+  normalized = normalized.replace(/^user\s+/i, '').trim()
   if (!normalized) {
     return {
       verb: 'performed',
@@ -1417,6 +1480,7 @@ const splitActivityVerbAndTarget = (rawType) => {
     { pattern: /^show\s+/i, verb: 'opened' },
     { pattern: /^open(?:ed)?\s+/i, verb: 'opened' },
     { pattern: /^view(?:ed)?\s+/i, verb: 'viewed' },
+    { pattern: /^visit(?:ed)?\s+/i, verb: 'visited' },
     { pattern: /^search(?:ed)?\s+/i, verb: 'searched' },
     { pattern: /^load(?:ed)?\s+/i, verb: 'loaded' },
     { pattern: /^fetch(?:ed)?\s+/i, verb: 'fetched' },
