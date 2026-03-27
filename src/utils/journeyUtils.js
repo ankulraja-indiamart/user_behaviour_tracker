@@ -16,6 +16,14 @@ const SYSTEM_ACTIVITY_IDS = new Set([527, 673, 674, 678, 1764, 1841, 1842, 1844,
 const SESSION_GAP_MS = 30 * 60 * 1000
 const RELATED_ACTION_MERGE_WINDOW_MS = 5 * 1000
 const CONSECUTIVE_DUPLICATE_WINDOW_MS = 15 * 1000
+const BUYLEAD_GROUP_WINDOW_MS = 60 * 1000
+
+const BUYLEAD_INTERNAL_REQUEST_TITLE = 'enq/bl internal request'
+const BUYLEAD_INTERNAL_REQUEST_ENDPOINTS = [
+  '/api/intentgeneration',
+  '/api/saveisq',
+  '/api/saveenrichment',
+]
 
 const parseDateValue = (value) => {
   const raw = String(value ?? '')
@@ -202,6 +210,157 @@ const extractPathFromRequestUrl = (requestUrl) => {
   const methodMatch = trimmed.match(/^[A-Z]+\s+(\S+)\s+HTTP\/[\d.]+$/)
   const path = methodMatch ? methodMatch[1] : trimmed
   return path
+}
+
+const isBuyLeadInternalRequestPath = (requestPath) => {
+  const normalized = String(requestPath || '').trim().toLowerCase()
+  if (!normalized) {
+    return false
+  }
+
+  return BUYLEAD_INTERNAL_REQUEST_ENDPOINTS.some((endpoint) =>
+    normalized.includes(endpoint),
+  )
+}
+
+const isBuyLeadInternalRequestLog = (log) => {
+  const activityId = Number(log?.fk_activity_id)
+  const displayTitle = String(log?.fk_display_title || '').trim().toLowerCase()
+  const requestPath = extractPathFromRequestUrl(log?.request_url)
+
+  return (
+    activityId === 4729 &&
+    displayTitle === BUYLEAD_INTERNAL_REQUEST_TITLE &&
+    isBuyLeadInternalRequestPath(requestPath)
+  )
+}
+
+const extractSearchTermFromRefererUrl = (refererUrl) => {
+  try {
+    const parsed = new URL(String(refererUrl || '').trim())
+    return (
+      decodeQueryValue(parsed.searchParams.get('ss')) ||
+      decodeQueryValue(parsed.searchParams.get('q')) ||
+      decodeQueryValue(parsed.searchParams.get('keyword')) ||
+      null
+    )
+  } catch {
+    return null
+  }
+}
+
+const detectBuyLeadSourceFromRefererUrl = (refererUrl) => {
+  try {
+    const parsed = new URL(String(refererUrl || '').trim())
+    const pathname = String(parsed.pathname || '').toLowerCase()
+    if (pathname.includes('search.php')) {
+      return 'search_page'
+    }
+  } catch {}
+
+  return null
+}
+
+const createBuyLeadSyntheticLog = (clusterLogs) => {
+  const sortedCluster = [...clusterLogs].sort((left, right) => {
+    const leftTs = parseDateValue(left?.datevalue)?.getTime() ?? 0
+    const rightTs = parseDateValue(right?.datevalue)?.getTime() ?? 0
+    return leftTs - rightTs
+  })
+
+  const primary = sortedCluster[0]
+  const refererFromLogs =
+    sortedCluster
+      .map((entry) => String(entry?.referer || '').trim())
+      .find((value) => /^https?:\/\//i.test(value)) ||
+    String(primary?.referer || '').trim() ||
+    '-'
+  const searchTerm = extractSearchTermFromRefererUrl(refererFromLogs)
+  const source = detectBuyLeadSourceFromRefererUrl(refererFromLogs) || 'search_page'
+
+  return {
+    ...primary,
+    fk_display_title: 'BuyLead Generated',
+    __is_synthetic_buylead_event: true,
+    __buylead_cluster_size: sortedCluster.length,
+    __buylead_search_term: searchTerm,
+    __buylead_source: source,
+  }
+}
+
+const collapseBuyLeadInternalRequests = (logs) => {
+  if (!Array.isArray(logs) || logs.length === 0) {
+    return []
+  }
+
+  const standardLogs = logs.filter((log) => !isBuyLeadInternalRequestLog(log))
+  const buyLeadLogs = logs.filter((log) => isBuyLeadInternalRequestLog(log))
+
+  if (buyLeadLogs.length === 0) {
+    return logs
+  }
+
+  const groupedByUser = buyLeadLogs.reduce((accumulator, log) => {
+    const userId = String(log?.glusr_id || '-')
+    if (!accumulator[userId]) {
+      accumulator[userId] = []
+    }
+    accumulator[userId].push(log)
+    return accumulator
+  }, {})
+
+  const syntheticLogs = Object.values(groupedByUser).flatMap((userLogs) => {
+    const sortedUserLogs = [...userLogs].sort((left, right) => {
+      const leftTs = parseDateValue(left?.datevalue)?.getTime() ?? 0
+      const rightTs = parseDateValue(right?.datevalue)?.getTime() ?? 0
+      return leftTs - rightTs
+    })
+
+    const clusters = []
+    let activeCluster = []
+    let clusterStartTs = null
+
+    for (const log of sortedUserLogs) {
+      const logTs = parseDateValue(log?.datevalue)?.getTime()
+
+      if (logTs === undefined || logTs === null) {
+        if (activeCluster.length > 0) {
+          clusters.push(activeCluster)
+          activeCluster = []
+          clusterStartTs = null
+        }
+        clusters.push([log])
+        continue
+      }
+
+      if (activeCluster.length === 0) {
+        activeCluster = [log]
+        clusterStartTs = logTs
+        continue
+      }
+
+      const withinWindow = logTs - clusterStartTs <= BUYLEAD_GROUP_WINDOW_MS
+      if (withinWindow) {
+        activeCluster.push(log)
+      } else {
+        clusters.push(activeCluster)
+        activeCluster = [log]
+        clusterStartTs = logTs
+      }
+    }
+
+    if (activeCluster.length > 0) {
+      clusters.push(activeCluster)
+    }
+
+    return clusters.map((cluster) => createBuyLeadSyntheticLog(cluster))
+  })
+
+  return [...standardLogs, ...syntheticLogs].sort((left, right) => {
+    const leftTime = parseDateValue(left.datevalue)?.getTime() ?? 0
+    const rightTime = parseDateValue(right.datevalue)?.getTime() ?? 0
+    return leftTime - rightTime
+  })
 }
 
 const isIntentGenerationRequestPath = (requestPath) => {
@@ -667,6 +826,21 @@ const classifyEvent = (log) => {
     return { action: 'ignore' }
   }
 
+  // STEP 1.5: BuyLead generated event from clustered internal request logs
+  if (isBuyLeadInternalRequestLog(log) || log?.__is_synthetic_buylead_event) {
+    return {
+      action: 'buylead_generated',
+      search_term:
+        cleanText(log?.__buylead_search_term) ||
+        extractSearchTermFromRefererUrl(log?.referer) ||
+        null,
+      source:
+        cleanText(log?.__buylead_source) ||
+        detectBuyLeadSourceFromRefererUrl(log?.referer) ||
+        'search_page',
+    }
+  }
+
   // STEP 2: Image View (HIGH PRIORITY - before enquiry to avoid misclassification)
   if (
     activityId === 4257 &&
@@ -767,6 +941,14 @@ const getTimeSecondBucket = (dateValue) => {
 }
 
 const isSystemGeneratedLog = (log) => {
+  if (log?.__is_synthetic_buylead_event) {
+    return false
+  }
+
+  if (isBuyLeadInternalRequestLog(log)) {
+    return false
+  }
+
   const activityId = Number(log.fk_activity_id)
   const label = (ACTIVITY_LABELS[activityId] || '').toLowerCase()
   const requestPath = extractPathFromRequestUrl(log.request_url).toLowerCase()
@@ -1023,7 +1205,8 @@ const buildJourneyFromLogs = (apiPayload) => {
   }
 
   const sortedLogs = flattenAndSortLogs(activity)
-  const reducedLogs = reduceToPrimaryUserActions(sortedLogs)
+  const normalizedBuyLeadLogs = collapseBuyLeadInternalRequests(sortedLogs)
+  const reducedLogs = reduceToPrimaryUserActions(normalizedBuyLeadLogs)
   const dedupedLogs = removeConsecutiveNearDuplicates(reducedLogs)
 
   if (dedupedLogs.length === 0) {
@@ -1054,9 +1237,12 @@ const buildJourneyFromLogs = (apiPayload) => {
 
     const requestPath = extractPathFromRequestUrl(log.request_url)
     const isIntentGeneration = isIntentGenerationRequestPath(requestPath)
-    const type = isIntentGeneration
-      ? 'Enquiry Intent'
-      : ACTIVITY_LABELS[log.fk_activity_id] ?? 'Other'
+    const isSyntheticBuyLeadEvent = Boolean(log.__is_synthetic_buylead_event)
+    const type = isSyntheticBuyLeadEvent
+      ? 'BuyLead Generated'
+      : isIntentGeneration
+        ? 'Enquiry Intent'
+        : ACTIVITY_LABELS[log.fk_activity_id] ?? 'Other'
     const imUrls = getImTrackingUrls(requestPath, log.domain_name, log.referer)
     const imageViewDetails = extractImageViewDetails(requestPath)
     const enquiryIntentDetails = extractEnquiryIntentDetails(
@@ -1110,11 +1296,17 @@ const buildJourneyFromLogs = (apiPayload) => {
       normalizedType.includes('home page') ||
       normalizedType.includes('homepage') ||
       normalizedType.includes('landing')
+    const isBuyLeadGeneratedEvent =
+      isSyntheticBuyLeadEvent || eventClassification.action === 'buylead_generated'
     const isEnquiry =
-      ENQUIRY_ACTIVITY_IDS.has(activityId) ||
-      normalizedType.includes('enquiry') ||
-      isIntentGeneration
+      !isBuyLeadGeneratedEvent &&
+      (
+        ENQUIRY_ACTIVITY_IDS.has(activityId) ||
+        normalizedType.includes('enquiry') ||
+        isIntentGeneration
+      )
     const isBuyLead =
+      isBuyLeadGeneratedEvent ||
       BUYLEAD_ACTIVITY_IDS.has(activityId) ||
       normalizedType.includes('bl form final step') ||
       normalizedType.includes('buylead')
@@ -1132,8 +1324,14 @@ const buildJourneyFromLogs = (apiPayload) => {
       type,
       activity_id: log.fk_activity_id,
       title: log.fk_display_title || '-',
-      classified_action: eventClassification.action, // Store classified action
-      keyword: searchJourneyEvent.searchTerm || searchDetails.keyword,
+      classified_action: isBuyLeadGeneratedEvent
+        ? 'buylead_generated'
+        : eventClassification.action,
+      keyword:
+        cleanText(log.__buylead_search_term) ||
+        eventClassification.search_term ||
+        searchJourneyEvent.searchTerm ||
+        searchDetails.keyword,
       search_city: searchJourneyEvent.filters.city || searchDetails.city,
       city:
         searchJourneyEvent.filters.city ||
@@ -1189,6 +1387,12 @@ const buildJourneyFromLogs = (apiPayload) => {
       enquiry_section: enquiryIntentDetails.section,
       enquiry_source: enquiryIntentDetails.sourceLabel,
       is_buylead: isBuyLead,
+      buylead_source:
+        cleanText(log.__buylead_source) ||
+        eventClassification.source ||
+        null,
+      buylead_group_size: Number(log.__buylead_cluster_size) || null,
+      is_buylead_generated: isBuyLeadGeneratedEvent,
       is_mcat_page:
         Boolean(mcatPageName) ||
         Number(log.fk_activity_id) === 393 ||
@@ -1402,6 +1606,9 @@ const toTitleCase = (value) => {
 }
 
 const getActionTypeTag = (step) => {
+  if (step.is_buylead_generated || step.is_buylead) {
+    return 'BuyLead Generated'
+  }
   if (step.is_enquiry) {
     return 'Enquiry Intent'
   }
@@ -1423,9 +1630,6 @@ const getActionTypeTag = (step) => {
   if (step.is_supplier_view) {
     return 'Supplier View'
   }
-  if (step.is_buylead) {
-    return 'BuyLead'
-  }
   if (step.is_landing) {
     return 'Landing'
   }
@@ -1433,6 +1637,9 @@ const getActionTypeTag = (step) => {
 }
 
 const getActionTypeTagClass = (step) => {
+  if (step.is_buylead_generated || step.is_buylead) {
+    return 'timeline-tag--buylead'
+  }
   if (step.is_enquiry) {
     return 'timeline-tag--enquiry'
   }
@@ -1453,9 +1660,6 @@ const getActionTypeTagClass = (step) => {
   }
   if (step.is_supplier_view) {
     return 'timeline-tag--supplier'
-  }
-  if (step.is_buylead) {
-    return 'timeline-tag--buylead'
   }
   if (step.is_landing) {
     return 'timeline-tag--landing'

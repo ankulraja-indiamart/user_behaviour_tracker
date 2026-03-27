@@ -165,7 +165,73 @@ const extractSearchDataFromHtml = (rawHtml, baseUrl) => {
   }
 }
 
-const extractProductDataFromHtml = (rawHtml) => {
+const isPdpPage = (rawHtml, pageUrl) => {
+  const html = String(rawHtml || '')
+  const url = String(pageUrl || '')
+  return /\/proddetail\//i.test(url) || /<h1[^>]*>[\s\S]*?<\/h1>/i.test(html)
+}
+
+const extractPdpBreadcrumbFromHtml = (rawHtml, pageUrl) => {
+  const html = String(rawHtml || '')
+
+  if (!isPdpPage(html, pageUrl)) {
+    return null
+  }
+
+  const navMatch = html.match(
+    /<nav[^>]*class=["'][^"']*\bbrdcmbBleedEdgePdp2\b[^"']*["'][^>]*>([\s\S]*?)<\/nav>/i,
+  )
+  const navHtml = navMatch?.[1] || ''
+
+  const breadcrumbLinks = []
+  const anchorRegex = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi
+  let anchorMatch = anchorRegex.exec(navHtml)
+
+  while (anchorMatch) {
+    const attributes = anchorMatch[1] || ''
+    const label = sanitizeHtmlText(anchorMatch[2] || '') || null
+    const hrefMatch = attributes.match(/\bhref=["']([^"']*)["']/i)
+    const hrefValue = sanitizeHtmlText(hrefMatch?.[1] || '') || null
+
+    if (label) {
+      breadcrumbLinks.push({
+        text: label,
+        href: hrefValue,
+      })
+    }
+
+    anchorMatch = anchorRegex.exec(navHtml)
+  }
+
+  const linkLabels = breadcrumbLinks.map((item) => item.text)
+  const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)
+  const h1Title = sanitizeHtmlText(h1Match?.[1] || '') || null
+
+  const breadcrumbs = [...linkLabels]
+  if (
+    h1Title &&
+    (
+      breadcrumbs.length === 0 ||
+      breadcrumbs[breadcrumbs.length - 1].toLowerCase() !== h1Title.toLowerCase()
+    )
+  ) {
+    breadcrumbs.push(h1Title)
+  }
+
+  const total = breadcrumbs.length
+
+  return {
+    // Mapping is from the bottom: IndiaMART <- Category <- mCat <- PDP
+    root: total >= 4 ? breadcrumbs[total - 4] : null,
+    category: total >= 3 ? breadcrumbs[total - 3] : null,
+    mcat: total >= 2 ? breadcrumbs[total - 2] : null,
+    pdpTitle: total >= 1 ? breadcrumbs[total - 1] : null,
+    breadcrumbs,
+    breadcrumbLinks,
+  }
+}
+
+const extractProductDataFromHtml = (rawHtml, pageUrl) => {
   const html = String(rawHtml || '')
   
   let title = ''
@@ -210,12 +276,15 @@ const extractProductDataFromHtml = (rawHtml) => {
   if (ratingMatch) {
     rating = ratingMatch[1] || ratingMatch[2]
   }
+
+  const breadcrumbData = extractPdpBreadcrumbFromHtml(html, pageUrl)
   
   return {
     title: title || 'Product',
     price: price || 'Price not available',
     image: image || '',
     rating: rating || '',
+    breadcrumb: breadcrumbData,
   }
 }
 
@@ -348,7 +417,7 @@ app.get('/api/product-preview', async (req, res) => {
       })
     }
 
-    const productData = extractProductDataFromHtml(responseText)
+    const productData = extractProductDataFromHtml(responseText, finalUrl)
 
     return res.json({
       url: finalUrl,

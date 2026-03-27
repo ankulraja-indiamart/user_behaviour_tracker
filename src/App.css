@@ -294,6 +294,47 @@
   outline-offset: 2px;
 }
 
+.timeline-download-menu {
+  position: relative;
+}
+
+.timeline-download-options {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.28rem);
+  min-width: 290px;
+  z-index: 8;
+  display: grid;
+  gap: 0.24rem;
+  padding: 0.36rem;
+  border: 1px solid rgba(143, 78, 28, 0.28);
+  border-radius: 0.58rem;
+  background: rgba(255, 250, 241, 0.98);
+  box-shadow: 0 12px 24px rgba(50, 27, 10, 0.2);
+}
+
+.timeline-download-option {
+  border: 1px solid rgba(143, 78, 28, 0.24);
+  border-radius: 0.5rem;
+  background: #fff9ef;
+  color: #6a4527;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+}
+
+.timeline-download-option:hover {
+  background: rgba(247, 228, 203, 0.95);
+  border-color: rgba(143, 78, 28, 0.42);
+}
+
+.timeline-download-option:focus-visible {
+  outline: 3px solid rgba(143, 78, 28, 0.25);
+  outline-offset: 2px;
+}
+
 .panel-subtitle {
   margin: 0.3rem 0 0.6rem;
   color: #6b4a2f;
@@ -414,6 +455,10 @@
 
 .timeline-action-link a:hover {
   color: #b8631f;
+}
+
+.timeline-status-dot {
+  text-decoration: none;
 }
 
 .product-preview-inline {
@@ -1307,6 +1352,12 @@
 
   .timeline-panel-header {
     flex-wrap: wrap;
+  }
+
+  .timeline-download-options {
+    right: auto;
+    left: 0;
+    min-width: 250px;
   }
 
   .product-preview-card {

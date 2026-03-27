@@ -25,6 +25,7 @@ function App() {
   const [journeyData, setJourneyData] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedSession, setSelectedSession] = useState(null)
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false)
 
   const sessionGroups = useMemo(() => {
     if (!journeyData?.journey?.length) {
@@ -176,79 +177,293 @@ function App() {
     }
   }, [visibleSteps])
 
-  const handleDownloadJson = () => {
-    if (!journeyData) {
-      return
+  const resolveMcatName = (step) => {
+    if (!step.is_product_view) {
+      return null
     }
 
-    const pickStructuredStep = (step) => ({
-      step: step.step,
-      session: step.session,
-      time: step.time,
-      type: step.type,
-      activity_id: step.activity_id,
-      classified_action: step.classified_action,
-      city: step.city,
-      search_city: step.search_city,
-      keyword: step.keyword,
-      search_action: step.search_action,
-      search_filters: step.search_filters,
-      mcat_page_name: step.mcat_page_name,
-      product: step.product,
-      product_id: step.product_id,
-      product_url: step.product_url,
-      company_url: step.company_url,
-      page_url: step.page_url,
-      request_path: step.request_path,
-      image_view_city: step.image_view_city,
-      image_source_url: step.image_source_url,
-      image_product_url: step.image_product_url,
-      service_type: step.service_type,
-      service_url: step.service_url,
-      is_search: step.is_search,
-      is_product_view: step.is_product_view,
-      is_supplier_view: step.is_supplier_view,
-      is_image_view: step.is_image_view,
-      is_landing: step.is_landing,
-      is_enquiry: step.is_enquiry,
-      is_buylead: step.is_buylead,
-      is_best_price_intent: step.is_best_price_intent,
-      enquiry_cta_name: step.enquiry_cta_name,
-      enquiry_cta_type: step.enquiry_cta_type,
-      enquiry_section: step.enquiry_section,
-      enquiry_source: step.enquiry_source,
-    })
+    return step.mcat_page_name || step.mcat_names || null
+  }
 
-    const exportPayload = {
-      user: {
-        glusr_id: journeyData.glusr_id,
-        gl_country: journeyData.gl_country,
-        glb_city: journeyData.glb_city,
-      },
-      total_sessions: journeyData.sessions,
-      user_journey_sessions: sessionGroups.map((group) => ({
-        session: group.session,
-        steps_count: group.steps.length,
-        steps: group.steps.map(pickStructuredStep),
-      })),
-    }
+  const pickStructuredStep = (step) => ({
+    step: step.step,
+    session: step.session,
+    time: step.time,
+    type: step.type,
+    activity_id: step.activity_id,
+    classified_action: step.classified_action,
+    city: step.city,
+    search_city: step.search_city,
+    keyword: step.keyword,
+    search_action: step.search_action,
+    search_filters: step.search_filters,
+    mcat_name: resolveMcatName(step),
+    mcat_page_name: step.mcat_page_name,
+    product: step.product,
+    product_id: step.product_id,
+    product_url: step.product_url,
+    company_url: step.company_url,
+    page_url: step.page_url,
+    request_path: step.request_path,
+    image_view_city: step.image_view_city,
+    image_source_url: step.image_source_url,
+    image_product_url: step.image_product_url,
+    service_type: step.service_type,
+    service_url: step.service_url,
+    is_search: step.is_search,
+    is_product_view: step.is_product_view,
+    is_supplier_view: step.is_supplier_view,
+    is_image_view: step.is_image_view,
+    is_landing: step.is_landing,
+    is_enquiry: step.is_enquiry,
+    is_buylead: step.is_buylead,
+    is_best_price_intent: step.is_best_price_intent,
+    enquiry_cta_name: step.enquiry_cta_name,
+    enquiry_cta_type: step.enquiry_cta_type,
+    enquiry_section: step.enquiry_section,
+    enquiry_source: step.enquiry_source,
+    is_buylead_generated: step.is_buylead_generated,
+    buylead_source: step.buylead_source,
+    buylead_group_size: step.buylead_group_size,
+  })
 
-    const jsonText = JSON.stringify(exportPayload, null, 2)
+  const downloadPayloadAsJson = (payload, formatName) => {
+    const jsonText = JSON.stringify(payload, null, 2)
     const blob = new Blob([jsonText], { type: 'application/json' })
     const downloadUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    const userId = journeyData.glusr_id || formData.glId || 'user'
+    const userId = journeyData?.glusr_id || formData.glId || 'user'
     link.href = downloadUrl
-    link.download = `user-journey-${userId}-${Date.now()}.json`
+    link.download = `user-journey-${formatName}-${userId}-${Date.now()}.json`
     document.body.append(link)
     link.click()
     link.remove()
     URL.revokeObjectURL(downloadUrl)
   }
 
+  const buildCurrentSessionGroups = () => {
+    return visibleSessionGroups.map((group) => ({
+      session: group.session,
+      steps_count: group.steps.length,
+      steps: group.steps,
+    }))
+  }
+
+  const fetchPdpMcatName = async (productUrl) => {
+    const safeUrl = String(productUrl || '').trim()
+    if (!safeUrl) {
+      return null
+    }
+
+    try {
+      const response = await fetch(
+        `/api/product-preview?url=${encodeURIComponent(safeUrl)}`,
+        {
+          method: 'GET',
+        },
+      )
+
+      if (!response.ok) {
+        return null
+      }
+
+      const payload = await response.json()
+      return payload?.data?.breadcrumb?.mcat || null
+    } catch {
+      return null
+    }
+  }
+
+  const enrichSessionGroupsWithPdpMcat = async (currentSessionGroups) => {
+    const productUrls = Array.from(
+      new Set(
+        currentSessionGroups
+          .flatMap((group) => group.steps)
+          .filter((step) => step.is_product_view)
+          .map((step) => step.product_url || step.page_url)
+          .filter((urlValue) => /\/proddetail\//i.test(String(urlValue || ''))),
+      ),
+    )
+
+    if (productUrls.length === 0) {
+      return currentSessionGroups
+    }
+
+    const mcatByUrl = new Map()
+    const mcatResults = await Promise.all(
+      productUrls.map(async (urlValue) => {
+        const mcatValue = await fetchPdpMcatName(urlValue)
+        return [urlValue, mcatValue]
+      }),
+    )
+
+    mcatResults.forEach(([urlValue, mcatValue]) => {
+      if (mcatValue) {
+        mcatByUrl.set(urlValue, mcatValue)
+      }
+    })
+
+    return currentSessionGroups.map((group) => ({
+      ...group,
+      steps: group.steps.map((step) => {
+        if (!step.is_product_view) {
+          return step
+        }
+
+        const stepUrl = step.product_url || step.page_url
+        const mcatValue = mcatByUrl.get(stepUrl)
+        if (!mcatValue) {
+          return step
+        }
+
+        return {
+          ...step,
+          mcat_page_name: step.mcat_page_name || mcatValue,
+          mcat_name: mcatValue,
+        }
+      }),
+    }))
+  }
+
+  const buildImportantMinimalPayload = (currentSessionGroups) => {
+    const importantSteps = currentSessionGroups.flatMap((group) => group.steps).filter(
+      (step) => step.is_product_view || step.is_search || step.is_mcat_page,
+    )
+
+    return {
+      user: {
+        glusr_id: journeyData.glusr_id,
+      },
+      sessions: currentSessionGroups.map((group) => group.session),
+      pdp_pages: importantSteps
+        .filter((step) => step.is_product_view)
+        .map((step) => ({
+          pdp_page_url: step.product_url || step.page_url || null,
+          pdp_title: step.product || step.title || null,
+          pdp_mcat_name: resolveMcatName(step),
+        })),
+      search_pages: importantSteps
+        .filter((step) => step.is_search)
+        .map((step) => ({
+          keyword: step.keyword || null,
+          city: step.search_city || step.city || journeyData.glb_city || null,
+          country: journeyData.gl_country || null,
+        })),
+      category_pages: importantSteps
+        .filter((step) => step.is_mcat_page)
+        .map((step) => ({
+          mcat_name: resolveMcatName(step),
+        })),
+    }
+  }
+
+  const buildImportantFullPayload = (currentSessionGroups) => {
+    const importantSteps = currentSessionGroups.flatMap((group) => group.steps).filter(
+      (step) => step.is_product_view || step.is_search || step.is_mcat_page,
+    )
+
+    return {
+      user: {
+        glusr_id: journeyData.glusr_id,
+        gl_country: journeyData.gl_country,
+        glb_city: journeyData.glb_city,
+      },
+      sessions: currentSessionGroups.map((group) => group.session),
+      pdp_pages: importantSteps
+        .filter((step) => step.is_product_view)
+        .map((step) => pickStructuredStep(step)),
+      search_pages: importantSteps
+        .filter((step) => step.is_search)
+        .map((step) => pickStructuredStep(step)),
+      category_pages: importantSteps
+        .filter((step) => step.is_mcat_page)
+        .map((step) => pickStructuredStep(step)),
+    }
+  }
+
+  const handleDownloadJson = async (formatType) => {
+    if (!journeyData) {
+      return
+    }
+
+    const currentSessionGroups = await enrichSessionGroupsWithPdpMcat(
+      buildCurrentSessionGroups(),
+    )
+
+    const fullPayload = {
+      user: {
+        glusr_id: journeyData.glusr_id,
+        gl_country: journeyData.gl_country,
+        glb_city: journeyData.glb_city,
+      },
+      total_sessions: currentSessionGroups.length,
+      user_journey_sessions: currentSessionGroups.map((group) => ({
+        session: group.session,
+        steps_count: group.steps.length,
+        steps: group.steps.map(pickStructuredStep),
+      })),
+    }
+
+    if (formatType === 'full') {
+      downloadPayloadAsJson(fullPayload, 'full-session')
+    } else if (formatType === 'important-minimal') {
+      downloadPayloadAsJson(
+        buildImportantMinimalPayload(currentSessionGroups),
+        'important-minimal',
+      )
+    } else if (formatType === 'important-full') {
+      downloadPayloadAsJson(
+        buildImportantFullPayload(currentSessionGroups),
+        'important-full',
+      )
+    }
+
+    setIsDownloadMenuOpen(false)
+  }
+
   const handleChange = (event) => {
     const { name, value } = event.target
     setFormData((previous) => ({ ...previous, [name]: value }))
+  }
+
+  const handlePdpMcatResolved = (session, stepNumber, mcatName) => {
+    const resolvedMcat = String(mcatName || '').trim()
+    if (!resolvedMcat) {
+      return
+    }
+
+    setJourneyData((previous) => {
+      if (!previous?.journey?.length) {
+        return previous
+      }
+
+      let hasChanged = false
+      const updatedJourney = previous.journey.map((entry) => {
+        if (entry.session !== session || entry.step !== stepNumber) {
+          return entry
+        }
+
+        if (entry.mcat_page_name === resolvedMcat || entry.mcat_name === resolvedMcat) {
+          return entry
+        }
+
+        hasChanged = true
+        return {
+          ...entry,
+          mcat_page_name: entry.mcat_page_name || resolvedMcat,
+          mcat_name: resolvedMcat,
+        }
+      })
+
+      if (!hasChanged) {
+        return previous
+      }
+
+      return {
+        ...previous,
+        journey: updatedJourney,
+      }
+    })
   }
 
   const handleSubmit = async (event) => {
@@ -439,13 +654,42 @@ function App() {
             <article className="panel timeline-panel">
               <div className="timeline-panel-header">
                 <h3>Timeline View</h3>
-                <button
-                  type="button"
-                  className="timeline-download-button"
-                  onClick={handleDownloadJson}
-                >
-                  Download JSON
-                </button>
+                <div className="timeline-download-menu">
+                  <button
+                    type="button"
+                    className="timeline-download-button"
+                    onClick={() => setIsDownloadMenuOpen((previous) => !previous)}
+                    aria-expanded={isDownloadMenuOpen}
+                    aria-haspopup="true"
+                  >
+                    Download JSON
+                  </button>
+                  {isDownloadMenuOpen ? (
+                    <div className="timeline-download-options" role="menu">
+                      <button
+                        type="button"
+                        className="timeline-download-option"
+                        onClick={() => handleDownloadJson('full')}
+                      >
+                        1. Full JSON (Current Session)
+                      </button>
+                      <button
+                        type="button"
+                        className="timeline-download-option"
+                        onClick={() => handleDownloadJson('important-minimal')}
+                      >
+                        2. Important Activity JSON (Minimal Keys)
+                      </button>
+                      <button
+                        type="button"
+                        className="timeline-download-option"
+                        onClick={() => handleDownloadJson('important-full')}
+                      >
+                        3. Important Activity JSON (All Keys)
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               </div>
               <p className="panel-subtitle">
                 User: {journeyData.glusr_id} | {journeyData.glb_city},{' '}
@@ -547,7 +791,9 @@ function App() {
                           !directImagePreviewUrl &&
                           isProductRelated &&
                           Boolean(step.product_url || step.image_product_url)
-                        const actionText = step.is_enquiry
+                        const actionText = step.is_buylead_generated || step.is_buylead
+                          ? 'BuyLead Generated'
+                          : step.is_enquiry
                           ? enquiryActionText
                           : step.is_mcat_page
                             ? mcatActionText
@@ -562,7 +808,9 @@ function App() {
                                     : isProductRelated
                                       ? productActionText
                                       : genericActionText
-                        const actionUrl = step.is_enquiry
+                        const actionUrl = step.is_buylead_generated || step.is_buylead
+                          ? step.product_url || step.page_url || step.service_url
+                          : step.is_enquiry
                           ? step.product_url || step.page_url || step.service_url
                           : directImagePreviewUrl
                             ? directImagePreviewUrl
@@ -604,6 +852,21 @@ function App() {
                                     </p>
                                     <DirectImagePreview imageUrl={directImagePreviewUrl} />
                                   </>
+                                ) : step.is_buylead_generated || step.is_buylead ? (
+                                  <>
+                                    <p className="timeline-action-link">
+                                      <span className="timeline-status-dot" aria-hidden="true">🟢</span>{' '}
+                                      <a href={actionUrl} target="_blank" rel="noreferrer">
+                                        {actionText}
+                                      </a>
+                                    </p>
+                                    {step.keyword ? (
+                                      <p className="timeline-meta">Keyword: {step.keyword}</p>
+                                    ) : null}
+                                    {step.product_url ? (
+                                      <ProductHoverPreview productUrl={step.product_url} />
+                                    ) : null}
+                                  </>
                                 ) : step.is_enquiry ? (
                                   <>
                                     <p className="timeline-action-link">
@@ -620,7 +883,16 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    <ProductHoverPreview productUrl={actionUrl} />
+                                    <ProductHoverPreview
+                                      productUrl={actionUrl}
+                                      onMcatResolved={(mcatName) =>
+                                        handlePdpMcatResolved(
+                                          step.session,
+                                          step.step,
+                                          mcatName,
+                                        )
+                                      }
+                                    />
                                   </>
                                 ) : step.is_supplier_view ? (
                                   <>
@@ -651,7 +923,10 @@ function App() {
                                 <p className="timeline-action-text">{actionText}</p>
                               )}
                               <p className="timeline-time">{step.time}</p>
-                              {step.keyword && !step.is_search ? (
+                              {step.is_product_view && resolveMcatName(step) ? (
+                                <p className="timeline-meta">mCat: {resolveMcatName(step)}</p>
+                              ) : null}
+                              {step.keyword && !step.is_search && !(step.is_buylead_generated || step.is_buylead) ? (
                                 <p className="timeline-meta">Keyword: {step.keyword}</p>
                               ) : null}
                               {step.product && !isProductRelated ? (

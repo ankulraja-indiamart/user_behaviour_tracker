@@ -23,7 +23,7 @@ const getProductIdFromProductUrl = (productUrl) => {
   return idMatch ? idMatch[1] : token
 }
 
-function ProductHoverPreview({ productUrl }) {
+function ProductHoverPreview({ productUrl, onMcatResolved }) {
   if (!productUrl) {
     return null
   }
@@ -74,6 +74,9 @@ function ProductHoverPreview({ productUrl }) {
 
       setPreviewData(payload.data)
       setResolvedPreviewUrl(payload.url || productUrl)
+      if (payload?.data?.breadcrumb?.mcat) {
+        onMcatResolved?.(payload.data.breadcrumb.mcat)
+      }
       setPreviewState('ready')
     } catch (error) {
       if (error?.name === 'AbortError') {
@@ -117,6 +120,9 @@ function ProductHoverPreview({ productUrl }) {
           <div className="product-preview-info">
             <h4 className="product-preview-title">{previewData.title}</h4>
             <p className="product-preview-price">{previewData.price}</p>
+            {previewData?.breadcrumb?.mcat ? (
+              <p className="product-preview-rating">mCat: {previewData.breadcrumb.mcat}</p>
+            ) : null}
             {previewData.rating ? (
               <p className="product-preview-rating">Rating: {previewData.rating} / 5</p>
             ) : null}
