@@ -17,6 +17,7 @@ const SESSION_GAP_MS = 30 * 60 * 1000
 const RELATED_ACTION_MERGE_WINDOW_MS = 5 * 1000
 const CONSECUTIVE_DUPLICATE_WINDOW_MS = 15 * 1000
 const BUYLEAD_GROUP_WINDOW_MS = 60 * 1000
+const PAGE_REFER_ALLOWED_ACTIVITY_IDS = new Set([393, 438, 527, 539, 677, 4243])
 
 const BUYLEAD_INTERNAL_REQUEST_TITLE = 'enq/bl internal request'
 const BUYLEAD_INTERNAL_REQUEST_ENDPOINTS = [
@@ -403,6 +404,168 @@ const toAbsoluteUrl = (value) => {
   const clean = String(value).trim()
   if (/^https?:\/\//i.test(clean)) {
     return canonicalizeIndiamartUrl(clean)
+  }
+
+  return null
+}
+
+const isValidHttpUrl = (value) => {
+  if (!value) {
+    return false
+  }
+
+  try {
+    const parsed = new URL(String(value).trim())
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const getNormalizedUrlKey = (urlValue) => {
+  if (!isValidHttpUrl(urlValue)) {
+    return null
+  }
+
+  try {
+    const parsed = new URL(String(urlValue).trim())
+    const pathname = parsed.pathname.replace(/\/+$/, '') || '/'
+    return `${parsed.origin.toLowerCase()}${pathname}${parsed.search}`
+  } catch {
+    return null
+  }
+}
+
+const isApiOrAjaxLikeUrl = (urlValue) => {
+  if (!isValidHttpUrl(urlValue)) {
+    return false
+  }
+
+  try {
+    const parsed = new URL(String(urlValue).trim())
+    const pathname = String(parsed.pathname || '').toLowerCase()
+
+    return (
+      pathname.startsWith('/api/') ||
+      pathname.includes('/ajaxrequest/') ||
+      pathname.includes('/homepage-ajax')
+    )
+  } catch {
+    return false
+  }
+}
+
+const getCurrentStepPageUrl = (step) => {
+  return (
+    step.product_url ||
+    step.company_url ||
+    step.page_url ||
+    step.service_url ||
+    null
+  )
+}
+
+const extractPrevPageFromRequest = (requestUrl, domainName) => {
+  const requestPath = extractPathFromRequestUrl(requestUrl)
+  const parsed = parseUrlWithFallbackBase(requestPath, domainName)
+  if (!parsed) {
+    return null
+  }
+
+  const fromPrevPage = toAbsoluteUrl(parsed.searchParams.get('prev_page_url'))
+  if (fromPrevPage) {
+    return fromPrevPage
+  }
+
+  const fromLandingRef = toAbsoluteUrl(parsed.searchParams.get('landing_ref_url'))
+  if (fromLandingRef) {
+    return fromLandingRef
+  }
+
+  return null
+}
+
+const cleanPageReferUrl = (urlValue) => {
+  if (!isValidHttpUrl(urlValue)) {
+    return null
+  }
+
+  try {
+    const parsed = new URL(String(urlValue).trim())
+    const noiseParams = [
+      'tags',
+      'trc',
+      'utm_source',
+      'utm_medium',
+      'utm_campaign',
+      'utm_term',
+      'utm_content',
+      'gclid',
+      'fbclid',
+    ]
+    noiseParams.forEach((param) => parsed.searchParams.delete(param))
+    return parsed.toString()
+  } catch {
+    return null
+  }
+}
+
+const isStepEligibleForPageRefer = (step) => {
+  const activityId = Number(step?.activity_id)
+  const isBuyLead = Boolean(step?.is_buylead_generated || step?.is_buylead)
+  return PAGE_REFER_ALLOWED_ACTIVITY_IDS.has(activityId) || isBuyLead
+}
+
+const sanitizePageReferCandidate = (candidateUrl, currentPageUrl) => {
+  if (!isValidHttpUrl(candidateUrl)) {
+    return null
+  }
+
+  if (isApiOrAjaxLikeUrl(candidateUrl)) {
+    return null
+  }
+
+  const candidateKey = getNormalizedUrlKey(candidateUrl)
+  const currentKey = getNormalizedUrlKey(currentPageUrl)
+
+  if (!candidateKey) {
+    return null
+  }
+
+  if (candidateKey === currentKey) {
+    return null
+  }
+
+  return cleanPageReferUrl(candidateUrl)
+}
+
+const getPageRefer = (log, step, previousStep) => {
+  if (!isStepEligibleForPageRefer(step)) {
+    return null
+  }
+
+  const currentPageUrl = getCurrentStepPageUrl(step)
+  const candidates = [
+    extractPrevPageFromRequest(log?.request_url, step.domain),
+    log?.referer,
+    previousStep ? getCurrentStepPageUrl(previousStep) : null,
+  ]
+
+  for (const candidate of candidates) {
+    const cleanCandidate = sanitizePageReferCandidate(
+      candidate,
+      currentPageUrl,
+    )
+    if (cleanCandidate) {
+      if (
+        previousStep?.page_refer &&
+        getNormalizedUrlKey(cleanCandidate) ===
+          getNormalizedUrlKey(previousStep.page_refer)
+      ) {
+        continue
+      }
+      return cleanCandidate
+    }
   }
 
   return null
@@ -1216,6 +1379,7 @@ const buildJourneyFromLogs = (apiPayload) => {
   let sessionId = 1
   let previousTimestamp = null
 
+  let previousResolvedStep = null
   const enrichedSteps = dedupedLogs.map((log, index) => {
     const timestamp = parseDateValue(log.datevalue)
     const timestampMs = timestamp?.getTime() ?? null
@@ -1402,11 +1566,84 @@ const buildJourneyFromLogs = (apiPayload) => {
     }
 
     step.entity_key = getEntityKey(step)
+    let previousMeaningfulStep = null
+    for (let previousIndex = index - 1; previousIndex >= 0; previousIndex -= 1) {
+      const previous = dedupedLogs[previousIndex]
+      const previousRequestPath = extractPathFromRequestUrl(previous?.request_url)
+      const previousUrls = getImTrackingUrls(
+        previousRequestPath,
+        previous?.domain_name,
+        previous?.referer,
+      )
+      const previousProductId =
+        extractProductIdFromRequestPath(previousRequestPath) ||
+        cleanText(previous?.product_disp_id) ||
+        null
+      previousMeaningfulStep = {
+        activity_id: Number(previous?.fk_activity_id),
+        is_buylead: Boolean(
+          BUYLEAD_ACTIVITY_IDS.has(Number(previous?.fk_activity_id)) ||
+            isBuyLeadInternalRequestLog(previous) ||
+            previous?.__is_synthetic_buylead_event,
+        ),
+        is_buylead_generated: Boolean(
+          isBuyLeadInternalRequestLog(previous) ||
+            previous?.__is_synthetic_buylead_event,
+        ),
+        product_url: buildProductUrl(
+          previousProductId,
+          cleanText(previous?.modid),
+          previous?.referer || '-',
+          previous?.domain_name || '-',
+        ),
+        company_url: buildCompanyUrl(
+          previousRequestPath,
+          cleanText(previous?.modid),
+          previous?.referer || '-',
+          previous?.domain_name || '-',
+        ),
+        page_url: previousUrls.pageUrl,
+        service_url: previousUrls.serviceUrl,
+      }
+
+      const previousCurrentUrl = getCurrentStepPageUrl(previousMeaningfulStep)
+      const currentCurrentUrl = getCurrentStepPageUrl(step)
+      if (
+        previousCurrentUrl &&
+        getNormalizedUrlKey(previousCurrentUrl) !== getNormalizedUrlKey(currentCurrentUrl)
+      ) {
+        break
+      }
+    }
+    step.page_refer = getPageRefer(
+      log,
+      step,
+      previousResolvedStep || previousMeaningfulStep,
+    )
+    previousResolvedStep = step
 
     return step
   })
 
-  const journey = mergeRelatedJourneySteps(enrichedSteps)
+  const journey = mergeRelatedJourneySteps(enrichedSteps).map((step, index, all) => {
+    if (index === 0 || !step.page_refer) {
+      return step
+    }
+
+    const previousStep = all[index - 1]
+    if (
+      previousStep?.page_refer &&
+      getNormalizedUrlKey(previousStep.page_refer) ===
+        getNormalizedUrlKey(step.page_refer)
+    ) {
+      return {
+        ...step,
+        page_refer: null,
+      }
+    }
+
+    return step
+  })
 
   const summary = journey.reduce(
     (accumulator, step) => {

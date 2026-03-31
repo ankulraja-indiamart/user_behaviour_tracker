@@ -15,6 +15,39 @@ import {
   toTitleCase,
 } from './utils/journeyUtils'
 
+const isValidHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim())
+
+const getReadableReferLabel = (urlValue) => {
+  const rawUrl = String(urlValue || '').trim()
+  if (!isValidHttpUrl(rawUrl)) {
+    return rawUrl
+  }
+
+  try {
+    const parsed = new URL(rawUrl)
+    const host = parsed.hostname.toLowerCase()
+    const isIndiamart =
+      host === 'indiamart.com' || host.endsWith('.indiamart.com')
+
+    if (!isIndiamart) {
+      if (host.includes('google.')) {
+        return 'External (Google)'
+      }
+      if (host.includes('brave.')) {
+        return 'External (Brave)'
+      }
+      return `External (${parsed.hostname})`
+    }
+
+    const compactPath = `${parsed.hostname}${parsed.pathname}`.replace(/\/+$/, '')
+    return compactPath.length > 72
+      ? `${compactPath.slice(0, 69)}...`
+      : compactPath
+  } catch {
+    return rawUrl
+  }
+}
+
 function App() {
   const [formData, setFormData] = useState({
     glId: '',
@@ -210,6 +243,7 @@ function App() {
     image_product_url: step.image_product_url,
     service_type: step.service_type,
     service_url: step.service_url,
+    page_refer: step.page_refer,
     is_search: step.is_search,
     is_product_view: step.is_product_view,
     is_supplier_view: step.is_supplier_view,
@@ -830,6 +864,7 @@ function App() {
                           '--session-item-bg': sessionPalette.itemBg,
                           '--session-item-border': sessionPalette.itemBorder,
                         }
+                        const pageReferLabel = getReadableReferLabel(step.page_refer)
 
                         const actionTypeTag = getActionTypeTag(step)
                         const actionTypeTagClass = getActionTypeTagClass(step)
@@ -840,8 +875,11 @@ function App() {
                             className="timeline-item"
                             style={itemStyle}
                           >
-                            <span className="timeline-step">#{stepIndex + 1}</span>
                             <div className="timeline-content">
+                              <div className="timeline-item-header">
+                                <span className="timeline-step">#{stepIndex + 1}</span>
+                                <p className="timeline-time timeline-time--top">{step.time}</p>
+                              </div>
                               {actionUrl ? (
                                 directImagePreviewUrl ? (
                                   <>
@@ -850,6 +888,14 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
                                     <DirectImagePreview imageUrl={directImagePreviewUrl} />
                                   </>
                                 ) : step.is_buylead_generated || step.is_buylead ? (
@@ -860,6 +906,14 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
                                     {step.keyword ? (
                                       <p className="timeline-meta">Keyword: {step.keyword}</p>
                                     ) : null}
@@ -874,6 +928,14 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
                                     <EnquiryIntentCard step={step} />
                                   </>
                                 ) : shouldRenderProductPreview ? (
@@ -883,6 +945,14 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
                                     <ProductHoverPreview
                                       productUrl={actionUrl}
                                       onMcatResolved={(mcatName) =>
@@ -901,6 +971,14 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
                                     <CompanyInlinePreview companyUrl={actionUrl} />
                                   </>
                                 ) : step.is_search ? (
@@ -910,22 +988,46 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
                                     <SearchInlinePreview searchUrl={actionUrl} />
                                   </>
                                 ) : (
-                                  <p className="timeline-action-link">
-                                    <a href={actionUrl} target="_blank" rel="noreferrer">
-                                      {actionText}
-                                    </a>
-                                  </p>
+                                  <>
+                                    <p className="timeline-action-link">
+                                      <a href={actionUrl} target="_blank" rel="noreferrer">
+                                        {actionText}
+                                      </a>
+                                    </p>
+                                    {step.page_refer ? (
+                                      <p className="timeline-refer-row">
+                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                          {pageReferLabel}
+                                        </a>
+                                      </p>
+                                    ) : null}
+                                  </>
                                 )
                               ) : (
-                                <p className="timeline-action-text">{actionText}</p>
+                                <>
+                                  <p className="timeline-action-text">{actionText}</p>
+                                  {step.page_refer ? (
+                                    <p className="timeline-refer-row">
+                                      <span className="timeline-refer-label">Page Refer:</span>{' '}
+                                      <a href={step.page_refer} target="_blank" rel="noreferrer">
+                                        {pageReferLabel}
+                                      </a>
+                                    </p>
+                                  ) : null}
+                                </>
                               )}
-                              <p className="timeline-time">{step.time}</p>
-                              {step.is_product_view && resolveMcatName(step) ? (
-                                <p className="timeline-meta">mCat: {resolveMcatName(step)}</p>
-                              ) : null}
                               {step.keyword && !step.is_search && !(step.is_buylead_generated || step.is_buylead) ? (
                                 <p className="timeline-meta">Keyword: {step.keyword}</p>
                               ) : null}
