@@ -1,16 +1,21 @@
 import dotenv from 'dotenv'
 import express from 'express'
+import { fetchRawCslLogs } from './utils/cslLogsFetcher.js'
+import { llmAnalyze, llmChat } from '../controllers/llmController.js'
 
-dotenv.config()
+dotenv.config({ override: true })
 
 const app = express()
 const port = Number(process.env.SERVER_PORT || 5000)
+const DEBUG_PDP_PARSER = process.env.DEBUG_PDP_PARSER === '1'
+
+const debugPdp = (...args) => {
+  if (DEBUG_PDP_PARSER) {
+    console.log('[PDP_DEBUG]', ...args)
+  }
+}
 
 app.use(express.json())
-
-const formatDateForApi = (dateValue) => dateValue.replaceAll('-', '')
-
-const isValidDateInput = (dateValue) => /^\d{4}-\d{2}-\d{2}$/.test(dateValue)
 
 const ALLOWED_PREVIEW_HOST_SUFFIX = '.indiamart.com'
 
@@ -45,6 +50,15 @@ const sanitizeHtmlText = (value) => {
     .replace(/&gt;/gi, '>')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+const decodeCommonEscapes = (value) => {
+  return String(value || '')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#34;/gi, '"')
+    .replace(/\\x22/gi, '"')
+    .replace(/\\u0022/gi, '"')
+    .replace(/\\\"/g, '"')
 }
 
 const extractSearchContextFromUrl = (urlValue) => {
@@ -171,6 +185,86 @@ const isPdpPage = (rawHtml, pageUrl) => {
   return /\/proddetail\//i.test(url) || /<h1[^>]*>[\s\S]*?<\/h1>/i.test(html)
 }
 
+const extractNextDataJson = (rawHtml) => {
+  const html = String(rawHtml || '')
+  const scriptMatch = html.match(
+    /<script[^>]*id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i,
+  )
+  const scriptContent = scriptMatch?.[1]?.trim()
+
+  debugPdp('NEXT_DATA script found:', Boolean(scriptContent), 'length:', scriptContent?.length || 0)
+
+  if (!scriptContent) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(scriptContent)
+    const serviceRes = parsed?.props?.pageProps?.serviceRes
+    debugPdp('serviceRes snapshot:', JSON.stringify(serviceRes, null, 2))
+    return parsed
+  } catch {
+    debugPdp('Failed to parse __NEXT_DATA__ JSON')
+    return null
+  }
+}
+
+const extractMcatFromNextData = (nextData) => {
+  const dataNode = nextData?.props?.pageProps?.serviceRes?.Data?.[0]
+  debugPdp('DATA OBJECT:', dataNode)
+  debugPdp('Is Data[0][0] present (wrong-level check):', Boolean(dataNode?.[0]))
+  const mcatId = dataNode?.BRD_MCAT_ID ? String(dataNode.BRD_MCAT_ID).trim() : null
+  const mcatName = dataNode?.BRD_MCAT_NAME ? String(dataNode.BRD_MCAT_NAME).trim() : null
+  debugPdp('MCAT NAME:', mcatName)
+  debugPdp('MCAT ID:', mcatId)
+
+  return {
+    mcatId: mcatId || null,
+    mcatName: mcatName || null,
+  }
+}
+
+const extractMcatIdFromHtml = (rawHtml) => {
+  const html = String(rawHtml || '')
+
+  // Primary source: Next.js embedded JSON payload.
+  const nextData = extractNextDataJson(html)
+  const fromNextData = extractMcatFromNextData(nextData)
+  if (fromNextData.mcatId) {
+    debugPdp('MCAT ID source: __NEXT_DATA__')
+    return fromNextData.mcatId
+  }
+
+  const normalizedHtml = decodeCommonEscapes(html)
+  const patterns = [
+    /["']BRD_MCAT_ID["']\s*[:=]\s*["']?([0-9]{2,})["']?/i,
+    /\bBRD_MCAT_ID\b\s*[:=]\s*["']?([0-9]{2,})["']?/i,
+    /["']key["']\s*:\s*["']BRD_MCAT_ID["']\s*,\s*["']value["']\s*:\s*["']?([0-9]{2,})["']?/i,
+    /\bdata-(?:mcat-id|mcatid|brd-mcat-id)\b\s*=\s*["']([0-9]{2,})["']/i,
+  ]
+
+  for (const pattern of patterns) {
+    const match = normalizedHtml.match(pattern)
+    if (match?.[1]) {
+      debugPdp('MCAT ID source: regex fallback pattern matched')
+      return match[1]
+    }
+  }
+
+  // Fallback: sometimes MCAT id is available in canonical/query params.
+  const urlMatch = normalizedHtml.match(
+    /https?:\/\/[^"'\s>]+(?:\?(?:[^"'\s>]*))(?:mcatid|mcat_id|brd_mcat_id)=([0-9]{2,})/i,
+  )
+  if (urlMatch?.[1]) {
+    debugPdp('MCAT ID source: URL fallback')
+    return urlMatch[1]
+  }
+
+  debugPdp('MCAT ID source: not found in any parser path')
+
+  return null
+}
+
 const extractPdpBreadcrumbFromHtml = (rawHtml, pageUrl) => {
   const html = String(rawHtml || '')
 
@@ -219,12 +313,21 @@ const extractPdpBreadcrumbFromHtml = (rawHtml, pageUrl) => {
   }
 
   const total = breadcrumbs.length
+  const nextData = extractNextDataJson(html)
+  const nextDataMcat = extractMcatFromNextData(nextData)
+  const mcatId = extractMcatIdFromHtml(html)
+  const breadcrumbMcat = total >= 2 ? breadcrumbs[total - 2] : null
+  const mcatName = nextDataMcat.mcatName || breadcrumbMcat
+
+  debugPdp('Resolved breadcrumb mcatName:', mcatName)
+  debugPdp('Resolved breadcrumb mcatId:', mcatId)
 
   return {
     // Mapping is from the bottom: IndiaMART <- Category <- mCat <- PDP
     root: total >= 4 ? breadcrumbs[total - 4] : null,
     category: total >= 3 ? breadcrumbs[total - 3] : null,
-    mcat: total >= 2 ? breadcrumbs[total - 2] : null,
+    mcat: mcatName,
+    mcatId,
     pdpTitle: total >= 1 ? breadcrumbs[total - 1] : null,
     breadcrumbs,
     breadcrumbLinks,
@@ -278,14 +381,17 @@ const extractProductDataFromHtml = (rawHtml, pageUrl) => {
   }
 
   const breadcrumbData = extractPdpBreadcrumbFromHtml(html, pageUrl)
-  
-  return {
+
+  const result = {
     title: title || 'Product',
     price: price || 'Price not available',
     image: image || '',
     rating: rating || '',
     breadcrumb: breadcrumbData,
   }
+
+  debugPdp('FINAL PDP DATA:', result)
+  return result
 }
 
 const extractCompanyDataFromHtml = (rawHtml) => {
@@ -324,69 +430,21 @@ app.post('/api/behavior', async (req, res) => {
     })
   }
 
-  if (!isValidDateInput(startDate) || !isValidDateInput(endDate)) {
-    return res.status(400).json({
-      message: 'Dates must be in YYYY-MM-DD format.',
-    })
-  }
-
-  const apiToken = process.env.GLACTIVITY_AK
-  const baseUrl = process.env.GLACTIVITY_BASE_URL
-
-  if (!apiToken || !baseUrl) {
-    return res.status(500).json({
-      message: 'Server environment is missing API configuration.',
-    })
-  }
-
-  const queryParams = new URLSearchParams({
-    AK: apiToken,
-    flag: '2',
-    glusrId: String(glId),
-    starttime: formatDateForApi(startDate),
-    endtime: formatDateForApi(endDate),
-  })
-
-  const targetUrl = `${baseUrl}?${queryParams.toString()}`
-
   try {
-    const externalResponse = await fetch(targetUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json, text/plain, */*',
-      },
-    })
-
-    const contentType = externalResponse.headers.get('content-type') ?? ''
-    const isJsonResponse = contentType.includes('application/json')
-    let responsePayload
-
-    if (isJsonResponse) {
-      responsePayload = await externalResponse.json()
-    } else {
-      const rawText = await externalResponse.text()
-      try {
-        responsePayload = JSON.parse(rawText)
-      } catch {
-        responsePayload = rawText
-      }
-    }
-
-    if (!externalResponse.ok) {
-      return res.status(externalResponse.status).json({
-        message: 'External API returned an error.',
-        data: responsePayload,
-      })
-    }
+    const { payload: responsePayload } = await fetchRawCslLogs({ glid: glId, startDate, endDate })
 
     return res.json(responsePayload)
   } catch (error) {
-    return res.status(502).json({
-      message: 'Failed to call external API from backend.',
+    const status = Number(error?.status) || 502
+    return res.status(status).json({
+      message: error instanceof Error ? error.message : 'Failed to call external API from backend.',
       error: error instanceof Error ? error.message : String(error),
     })
   }
 })
+
+app.post('/api/llm/analyze', llmAnalyze)
+app.post('/api/llm/chat', llmChat)
 
 app.get('/api/product-preview', async (req, res) => {
   const previewUrlInput = String(req.query.url || '').trim()

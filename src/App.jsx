@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import ProductHoverPreview from './components/previews/ProductHoverPreview'
 import SearchInlinePreview from './components/previews/SearchInlinePreview'
 import EnquiryIntentCard from './components/previews/EnquiryIntentCard'
 import CompanyInlinePreview from './components/previews/CompanyInlinePreview'
 import DirectImagePreview from './components/previews/DirectImagePreview'
+import LLMInsights from './components/LLMInsights'
 import {
   buildGenericActionText,
   buildJourneyFromLogs,
@@ -15,37 +16,54 @@ import {
   toTitleCase,
 } from './utils/journeyUtils'
 
-const isValidHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim())
+const DATE_FILTER_ALL = 'ALL'
+const ACTIVITY_FILTER_ALL = 'ALL'
+const ACTIVITY_FILTER_ENQUIRY = 'ENQUIRY'
+const ACTIVITY_FILTER_BUYLEAD = 'BUYLEAD'
+const SESSION_FILTER_ALL = 'ALL'
 
-const getReadableReferLabel = (urlValue) => {
-  const rawUrl = String(urlValue || '').trim()
-  if (!isValidHttpUrl(rawUrl)) {
-    return rawUrl
+const toDayKey = (timestampMs) => {
+  if (!Number.isFinite(timestampMs)) {
+    return null
   }
 
-  try {
-    const parsed = new URL(rawUrl)
-    const host = parsed.hostname.toLowerCase()
-    const isIndiamart =
-      host === 'indiamart.com' || host.endsWith('.indiamart.com')
+  const dateValue = new Date(timestampMs)
+  const year = dateValue.getFullYear()
+  const month = String(dateValue.getMonth() + 1).padStart(2, '0')
+  const day = String(dateValue.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
-    if (!isIndiamart) {
-      if (host.includes('google.')) {
-        return 'External (Google)'
-      }
-      if (host.includes('brave.')) {
-        return 'External (Brave)'
-      }
-      return `External (${parsed.hostname})`
-    }
+const formatDayLabel = (dayKey) => {
+  const [yearText, monthText, dayText] = String(dayKey || '').split('-')
+  const year = Number(yearText)
+  const month = Number(monthText) - 1
+  const day = Number(dayText)
+  const parsed = new Date(year, month, day)
 
-    const compactPath = `${parsed.hostname}${parsed.pathname}`.replace(/\/+$/, '')
-    return compactPath.length > 72
-      ? `${compactPath.slice(0, 69)}...`
-      : compactPath
-  } catch {
-    return rawUrl
+  if (Number.isNaN(parsed.getTime())) {
+    return dayKey
   }
+
+  return parsed.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+  })
+}
+
+const getAvailableDates = (journeySteps) => {
+  const uniqueDayKeys = new Set(
+    journeySteps
+      .map((step) => toDayKey(step.timestamp_ms))
+      .filter(Boolean),
+  )
+
+  return Array.from(uniqueDayKeys)
+    .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
+    .map((dayKey) => ({
+      key: dayKey,
+      label: formatDayLabel(dayKey),
+    }))
 }
 
 function App() {
@@ -57,15 +75,195 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [journeyData, setJourneyData] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedSession, setSelectedSession] = useState(null)
+  const [selectedSession, setSelectedSession] = useState(SESSION_FILTER_ALL)
+  const [selectedDate, setSelectedDate] = useState(DATE_FILTER_ALL)
+  const [activityFilter, setActivityFilter] = useState(ACTIVITY_FILTER_ALL)
+  const [summaryType, setSummaryType] = useState('DATE')
+  const [summaryHeight, setSummaryHeight] = useState(70)
+  const [llmInsights, setLlmInsights] = useState(null)
+  const [llmStructuredContext, setLlmStructuredContext] = useState(null)
+  const [llmLoading, setLlmLoading] = useState(false)
+  const [llmError, setLlmError] = useState('')
+  const [showChat, setShowChat] = useState(true)
+  const [leftWidth, setLeftWidth] = useState(() => {
+    const saved = Number(localStorage.getItem('timelineLayoutWidth'))
+    if (Number.isFinite(saved) && saved >= 20 && saved <= 80) {
+      return saved
+    }
+    return 60
+  })
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false)
+  const layoutRef = useRef(null)
+  const rightPanelRef = useRef(null)
+  const llmPaneRef = useRef(null)
 
-  const sessionGroups = useMemo(() => {
+  useEffect(() => {
+    localStorage.setItem('timelineLayoutWidth', String(leftWidth))
+  }, [leftWidth])
+
+  useEffect(() => {
+    const llmPaneNode = llmPaneRef.current
+    const parentNode = rightPanelRef.current
+
+    if (!llmPaneNode || !parentNode) {
+      return
+    }
+
+    let frameId = 0
+
+    const computeVisibility = () => {
+      const llmRect = llmPaneNode.getBoundingClientRect()
+      const parentRect = parentNode.getBoundingClientRect()
+
+      if (!llmRect.height || !parentRect.height) {
+        return
+      }
+
+      const heightPercentage = (llmRect.height / parentRect.height) * 100
+      setShowChat(heightPercentage >= 40)
+    }
+
+    const scheduleCompute = () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId)
+      }
+
+      frameId = requestAnimationFrame(computeVisibility)
+    }
+
+    const observer = new ResizeObserver(() => {
+      scheduleCompute()
+    })
+
+    observer.observe(llmPaneNode)
+    observer.observe(parentNode)
+    scheduleCompute()
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId)
+      }
+      observer.disconnect()
+    }
+  }, [summaryHeight])
+
+  const startResize = (event) => {
+    event.preventDefault()
+
+    const onMouseMove = (moveEvent) => {
+      const container = layoutRef.current
+      if (!container) {
+        return
+      }
+
+      const rect = container.getBoundingClientRect()
+      if (!rect.width) {
+        return
+      }
+
+      let nextWidth = ((moveEvent.clientX - rect.left) / rect.width) * 100
+      if (nextWidth < 20) {
+        nextWidth = 20
+      }
+      if (nextWidth > 80) {
+        nextWidth = 80
+      }
+
+      setLeftWidth(nextWidth)
+    }
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }
+
+  const startRightPanelResize = (event) => {
+    event.preventDefault()
+
+    const onMouseMove = (moveEvent) => {
+      const container = rightPanelRef.current
+      if (!container) {
+        return
+      }
+
+      const rect = container.getBoundingClientRect()
+      if (!rect.height) {
+        return
+      }
+
+      let nextHeight = ((moveEvent.clientY - rect.top) / rect.height) * 100
+      if (nextHeight < 10) {
+        nextHeight = 10
+      }
+      if (nextHeight > 90) {
+        nextHeight = 90
+      }
+
+      setSummaryHeight(nextHeight)
+    }
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }
+
+  const availableDates = useMemo(() => {
     if (!journeyData?.journey?.length) {
       return []
     }
 
-    return journeyData.journey.reduce((groups, step) => {
+    return getAvailableDates(journeyData.journey)
+  }, [journeyData])
+
+  useEffect(() => {
+    if (selectedDate === DATE_FILTER_ALL) {
+      return
+    }
+
+    const hasSelectedDate = availableDates.some((dateItem) => dateItem.key === selectedDate)
+    if (!hasSelectedDate) {
+      setSelectedDate(DATE_FILTER_ALL)
+    }
+  }, [availableDates, selectedDate])
+
+  const filteredJourneySteps = useMemo(() => {
+    if (!journeyData?.journey?.length) {
+      return []
+    }
+
+    return journeyData.journey.filter((step) => {
+      const matchesDate =
+        selectedDate === DATE_FILTER_ALL || toDayKey(step.timestamp_ms) === selectedDate
+
+      const matchesActivity =
+        activityFilter === ACTIVITY_FILTER_ALL ||
+        (activityFilter === ACTIVITY_FILTER_ENQUIRY && step.is_enquiry) ||
+        (activityFilter === ACTIVITY_FILTER_BUYLEAD && (step.is_buylead || step.is_buylead_generated))
+
+      return matchesDate && matchesActivity
+    })
+  }, [journeyData, selectedDate, activityFilter])
+
+  const handleActivityFilterClick = (filterType) => {
+    setActivityFilter((previous) =>
+      previous === filterType ? ACTIVITY_FILTER_ALL : filterType,
+    )
+  }
+
+  const sessionGroups = useMemo(() => {
+    if (!filteredJourneySteps.length) {
+      return []
+    }
+
+    const groupedSessions = filteredJourneySteps.reduce((groups, step) => {
       const previousGroup = groups[groups.length - 1]
       if (!previousGroup || previousGroup.session !== step.session) {
         groups.push({ session: step.session, steps: [step] })
@@ -74,11 +272,42 @@ function App() {
       }
       return groups
     }, [])
+
+    return groupedSessions.map((group, index) => ({
+      ...group,
+      displaySession:
+        selectedDate === DATE_FILTER_ALL ? group.session : index + 1,
+    }))
+  }, [filteredJourneySteps, selectedDate])
+
+  useEffect(() => {
+    setSelectedSession(SESSION_FILTER_ALL)
+  }, [selectedDate, activityFilter])
+
+  const topBarMetrics = useMemo(() => {
+    const fullJourneySteps = journeyData?.journey || []
+    const totalActivities = fullJourneySteps.length
+    const totalSessions = new Set(fullJourneySteps.map((step) => step.session)).size
+    const enquiriesGenerated = fullJourneySteps.filter((step) => step.is_enquiry).length
+    const buyleadsGenerated = fullJourneySteps.filter(
+      (step) => step.is_buylead || step.is_buylead_generated,
+    ).length
+
+    return {
+      totalSessions,
+      totalActivities,
+      enquiriesGenerated,
+      buyleadsGenerated,
+    }
   }, [journeyData])
 
   useEffect(() => {
     if (sessionGroups.length === 0) {
-      setSelectedSession(null)
+      setSelectedSession(SESSION_FILTER_ALL)
+      return
+    }
+
+    if (selectedSession === SESSION_FILTER_ALL) {
       return
     }
 
@@ -86,12 +315,12 @@ function App() {
       (group) => group.session === selectedSession,
     )
     if (!selectedExists) {
-      setSelectedSession(sessionGroups[0].session)
+      setSelectedSession(SESSION_FILTER_ALL)
     }
   }, [sessionGroups, selectedSession])
 
   const visibleSessionGroups = useMemo(() => {
-    if (selectedSession === null) {
+    if (selectedSession === SESSION_FILTER_ALL) {
       return sessionGroups
     }
 
@@ -102,16 +331,28 @@ function App() {
     return visibleSessionGroups.flatMap((group) => group.steps)
   }, [visibleSessionGroups])
 
-  const sessionAuditSummary = useMemo(() => {
-    const totalSteps = visibleSteps.length
-    const searches = visibleSteps.filter((step) => step.is_search).length
-    const productViews = visibleSteps.filter((step) => step.is_product_view).length
-    const enquiriesRaised = visibleSteps.filter((step) => step.is_enquiry).length
-    const buyLeadsGenerated = visibleSteps.filter((step) => step.is_buylead).length
-    const imageViews = visibleSteps.filter((step) => step.is_image_view).length
-    const supplierViews = visibleSteps.filter((step) => step.is_supplier_view).length
+  const selectedSessionDisplay = useMemo(() => {
+    if (selectedSession === SESSION_FILTER_ALL) {
+      return null
+    }
 
-    const categorizedStepCount = visibleSteps.filter(
+    return (
+      sessionGroups.find((group) => group.session === selectedSession)?.displaySession ??
+      selectedSession
+    )
+  }, [selectedSession, sessionGroups])
+
+  const buildSummaryData = (steps, totalSessions, title) => {
+    const searches = steps.filter((step) => step.is_search).length
+    const productViews = steps.filter((step) => step.is_product_view).length
+    const enquiriesGenerated = steps.filter((step) => step.is_enquiry).length
+    const buyleadsGenerated = steps.filter(
+      (step) => step.is_buylead || step.is_buylead_generated,
+    ).length
+    const imageViews = steps.filter((step) => step.is_image_view).length
+    const supplierViews = steps.filter((step) => step.is_supplier_view).length
+
+    const categorizedStepCount = steps.filter(
       (step) =>
         step.is_search ||
         step.is_product_view ||
@@ -119,24 +360,10 @@ function App() {
         step.is_image_view ||
         step.is_landing ||
         step.is_enquiry ||
-        step.is_buylead,
+        step.is_buylead ||
+        step.is_buylead_generated,
     ).length
-
-    const uncategorizedActions = Math.max(0, totalSteps - categorizedStepCount)
-
-    const searchKeywords = visibleSteps
-      .map((step) => step.keyword)
-      .filter(Boolean)
-
-    const keywordFrequency = searchKeywords.reduce((accumulator, keyword) => {
-      const key = String(keyword).toLowerCase()
-      accumulator[key] = (accumulator[key] || 0) + 1
-      return accumulator
-    }, {})
-
-    const topKeyword = Object.entries(keywordFrequency).sort(
-      (left, right) => right[1] - left[1],
-    )[0]?.[0]
+    const uncategorizedActions = Math.max(0, steps.length - categorizedStepCount)
 
     const topSignals = []
     if (searches > 0) {
@@ -145,11 +372,11 @@ function App() {
     if (productViews > 0) {
       topSignals.push(`${productViews} product views`)
     }
-    if (enquiriesRaised > 0) {
-      topSignals.push(`${enquiriesRaised} enquiry actions`)
+    if (enquiriesGenerated > 0) {
+      topSignals.push(`${enquiriesGenerated} enquiry actions`)
     }
-    if (buyLeadsGenerated > 0) {
-      topSignals.push(`${buyLeadsGenerated} buylead events`)
+    if (buyleadsGenerated > 0) {
+      topSignals.push(`${buyleadsGenerated} buylead events`)
     }
     if (imageViews > 0) {
       topSignals.push(`${imageViews} image views`)
@@ -161,61 +388,74 @@ function App() {
       topSignals.push(`${uncategorizedActions} uncategorized actions`)
     }
 
-    const enquiryMoments = visibleSteps
+    const enquiryJourneyPoints = steps
       .filter((step) => step.is_enquiry)
       .slice(0, 8)
       .map((step) => {
-        const context = []
-
-        if (step.product) {
-          context.push(`Product: ${step.product}`)
-        } else if (step.product_id) {
-          context.push(`Product ID: ${step.product_id}`)
+        const productLabel = step.product || step.product_id || '-'
+        const ctaLabel = step.enquiry_cta_name || step.enquiry_cta_type || '-'
+        return {
+          key: `${step.session}-${step.step}-${step.time}`,
+          time: step.time,
+          productLabel,
+          ctaLabel,
         }
-
-        if (step.keyword) {
-          context.push(`Query: ${step.keyword}`)
-        }
-
-        if (step.enquiry_cta_name) {
-          context.push(`CTA: ${step.enquiry_cta_name}`)
-        }
-
-        return `#${step.step} | ${step.time}${context.length ? ` | ${context.join(' | ')}` : ''}`
       })
 
-    const buyLeadMoments = visibleSteps
-      .filter((step) => step.is_buylead)
-      .slice(0, 8)
-      .map((step) => `#${step.step} | ${step.time} | ${step.type}`)
-
     return {
-      totalSteps,
-      topKeyword: topKeyword || '-',
+      title,
+      totalSessions,
+      totalSteps: steps.length,
+      enquiriesGenerated,
+      buyleadsGenerated,
       topSignals,
-      enquiriesRaised,
-      buyLeadsGenerated,
-      enquiryMoments,
-      buyLeadMoments,
-      productPagesSeen: visibleSteps
-        .filter((step) => step.is_product_view)
-        .map((step) => step.page_url)
-        .filter(Boolean)
-        .slice(0, 4),
-      imageSourcesSeen: visibleSteps
-        .filter((step) => step.is_image_view)
-        .map((step) => step.image_source_url)
-        .filter(Boolean)
-        .slice(0, 4),
+      enquiryJourneyPoints,
     }
-  }, [visibleSteps])
+  }
+
+  const dateSummaryData = useMemo(() => {
+    return buildSummaryData(
+      filteredJourneySteps,
+      sessionGroups.length,
+      selectedDate === DATE_FILTER_ALL
+        ? 'Overall Summary (Selected Range)'
+        : `Date: ${formatDayLabel(selectedDate)}`,
+    )
+  }, [filteredJourneySteps, selectedDate, sessionGroups])
+
+  const sessionSummaryData = useMemo(() => {
+    const isAllSessionsSelected = selectedSession === SESSION_FILTER_ALL
+    return buildSummaryData(
+      visibleSteps,
+      isAllSessionsSelected
+        ? sessionGroups.length
+        : selectedSessionDisplay !== null
+          ? 1
+          : 0,
+      isAllSessionsSelected
+        ? 'All Sessions (Filtered)'
+        : selectedSessionDisplay !== null
+        ? `Session ${selectedSessionDisplay}`
+        : 'No Session Selected',
+    )
+  }, [selectedSession, selectedSessionDisplay, sessionGroups, visibleSteps])
+
+  const summaryData = summaryType === 'DATE' ? dateSummaryData : sessionSummaryData
 
   const resolveMcatName = (step) => {
     if (!step.is_product_view) {
       return null
     }
 
-    return step.mcat_page_name || step.mcat_names || null
+    return step.mcat_page_name || step.mcat_name || step.mcat_names || null
+  }
+
+  const resolveMcatId = (step) => {
+    if (!step.is_product_view) {
+      return null
+    }
+
+    return step.mcat_id || step.brd_mcat_id || null
   }
 
   const pickStructuredStep = (step) => ({
@@ -231,6 +471,7 @@ function App() {
     search_action: step.search_action,
     search_filters: step.search_filters,
     mcat_name: resolveMcatName(step),
+    mcat_id: resolveMcatId(step),
     mcat_page_name: step.mcat_page_name,
     product: step.product,
     product_id: step.product_id,
@@ -283,7 +524,7 @@ function App() {
     }))
   }
 
-  const fetchPdpMcatName = async (productUrl) => {
+  const fetchPdpMcatDetails = async (productUrl) => {
     const safeUrl = String(productUrl || '').trim()
     if (!safeUrl) {
       return null
@@ -302,7 +543,16 @@ function App() {
       }
 
       const payload = await response.json()
-      return payload?.data?.breadcrumb?.mcat || null
+      const mcatName = payload?.data?.breadcrumb?.mcat || null
+      const mcatId = payload?.data?.breadcrumb?.mcatId || null
+      if (!mcatName && !mcatId) {
+        return null
+      }
+
+      return {
+        mcatName,
+        mcatId,
+      }
     } catch {
       return null
     }
@@ -326,14 +576,14 @@ function App() {
     const mcatByUrl = new Map()
     const mcatResults = await Promise.all(
       productUrls.map(async (urlValue) => {
-        const mcatValue = await fetchPdpMcatName(urlValue)
-        return [urlValue, mcatValue]
+        const mcatDetails = await fetchPdpMcatDetails(urlValue)
+        return [urlValue, mcatDetails]
       }),
     )
 
-    mcatResults.forEach(([urlValue, mcatValue]) => {
-      if (mcatValue) {
-        mcatByUrl.set(urlValue, mcatValue)
+    mcatResults.forEach(([urlValue, mcatDetails]) => {
+      if (mcatDetails) {
+        mcatByUrl.set(urlValue, mcatDetails)
       }
     })
 
@@ -345,15 +595,16 @@ function App() {
         }
 
         const stepUrl = step.product_url || step.page_url
-        const mcatValue = mcatByUrl.get(stepUrl)
-        if (!mcatValue) {
+        const mcatDetails = mcatByUrl.get(stepUrl)
+        if (!mcatDetails) {
           return step
         }
 
         return {
           ...step,
-          mcat_page_name: step.mcat_page_name || mcatValue,
-          mcat_name: mcatValue,
+          mcat_page_name: step.mcat_page_name || mcatDetails.mcatName,
+          mcat_name: mcatDetails.mcatName || step.mcat_name,
+          mcat_id: mcatDetails.mcatId || step.mcat_id,
         }
       }),
     }))
@@ -375,6 +626,7 @@ function App() {
           pdp_page_url: step.product_url || step.page_url || null,
           pdp_title: step.product || step.title || null,
           pdp_mcat_name: resolveMcatName(step),
+          pdp_mcat_id: resolveMcatId(step),
         })),
       search_pages: importantSteps
         .filter((step) => step.is_search)
@@ -460,9 +712,10 @@ function App() {
     setFormData((previous) => ({ ...previous, [name]: value }))
   }
 
-  const handlePdpMcatResolved = (session, stepNumber, mcatName) => {
-    const resolvedMcat = String(mcatName || '').trim()
-    if (!resolvedMcat) {
+  const handlePdpMcatResolved = (session, stepNumber, mcatDetails) => {
+    const resolvedMcat = String(mcatDetails?.mcatName || '').trim()
+    const resolvedMcatId = String(mcatDetails?.mcatId || '').trim()
+    if (!resolvedMcat && !resolvedMcatId) {
       return
     }
 
@@ -477,15 +730,21 @@ function App() {
           return entry
         }
 
-        if (entry.mcat_page_name === resolvedMcat || entry.mcat_name === resolvedMcat) {
+        const sameName =
+          !resolvedMcat ||
+          entry.mcat_page_name === resolvedMcat ||
+          entry.mcat_name === resolvedMcat
+        const sameId = !resolvedMcatId || String(entry.mcat_id || '') === resolvedMcatId
+        if (sameName && sameId) {
           return entry
         }
 
         hasChanged = true
         return {
           ...entry,
-          mcat_page_name: entry.mcat_page_name || resolvedMcat,
-          mcat_name: resolvedMcat,
+          mcat_page_name: entry.mcat_page_name || resolvedMcat || entry.mcat_page_name,
+          mcat_name: resolvedMcat || entry.mcat_name,
+          mcat_id: resolvedMcatId || entry.mcat_id,
         }
       })
 
@@ -498,6 +757,40 @@ function App() {
         journey: updatedJourney,
       }
     })
+  }
+
+  const triggerLLMAnalysis = async (request) => {
+    setLlmLoading(true)
+    setLlmError('')
+    setLlmInsights(null)
+    setLlmStructuredContext(null)
+
+    console.log('Calling LLM API', request)
+
+    try {
+      const response = await fetch('/api/llm/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      })
+
+      const data = await response.json()
+      console.log('LLM Response', data)
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || 'Failed to load LLM insights.')
+      }
+
+      console.log('LLM Insights:', data?.data)
+      setLlmInsights(data?.data ?? null)
+      setLlmStructuredContext(data?.structuredData ?? null)
+    } catch (error) {
+      setLlmError(error instanceof Error ? error.message : 'Failed to load LLM insights.')
+    } finally {
+      setLlmLoading(false)
+    }
   }
 
   const handleSubmit = async (event) => {
@@ -528,7 +821,14 @@ function App() {
       }
 
       const responseData = await response.json()
-      console.log('GetCSLData response:', responseData)
+      console.log('GetCSLData request succeeded')
+
+      const analysisPayload = {
+        glid: formData.glId,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      }
+
       const transformed = buildJourneyFromLogs(responseData)
 
       if (!transformed) {
@@ -537,6 +837,11 @@ function App() {
       }
 
       setJourneyData(transformed)
+      setSelectedDate(DATE_FILTER_ALL)
+      setActivityFilter(ACTIVITY_FILTER_ALL)
+      setSelectedSession(SESSION_FILTER_ALL)
+
+      void triggerLLMAnalysis(analysisPayload)
     } catch (error) {
       console.error('API request failed:', error)
       setErrorMessage('Unable to load data. Please check server connectivity.')
@@ -629,63 +934,95 @@ function App() {
       ) : (
         <>
           <header className="results-navbar" aria-label="Active tracking filters">
-            <div className="results-navbar-title">
-              <h2>User Journey Workspace</h2>
+            <div className="results-navbar-main">
+              <form className="tracking-form tracking-form--inline" onSubmit={handleSubmit}>
+                <div className="field-group field-group--compact">
+                  <label htmlFor="results-gl-id">User GL ID</label>
+                  <input
+                    id="results-gl-id"
+                    name="glId"
+                    type="text"
+                    autoComplete="off"
+                    value={formData.glId}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="field-group field-group--compact">
+                  <label htmlFor="results-start-date">Start Date</label>
+                  <input
+                    id="results-start-date"
+                    name="startDate"
+                    type="date"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="field-group field-group--compact">
+                  <label htmlFor="results-end-date">End Date</label>
+                  <input
+                    id="results-end-date"
+                    name="endDate"
+                    type="date"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <span className="spinner"></span>
+                      <span>Tracking...</span>
+                    </>
+                  ) : (
+                    'Track Behavior'
+                  )}
+                </button>
+              </form>
+
+              <div className="results-metrics" aria-label="Journey summary metrics">
+          
+                <span className="results-metric-pill">
+                  <strong>{topBarMetrics.totalSessions}</strong> Sessions
+                </span>
+                <span className="results-metric-pill">
+                  <strong>{topBarMetrics.totalActivities}</strong> Activities
+                </span>
+                <button
+                  type="button"
+                  className={`results-metric-pill results-metric-pill--filter ${
+                    activityFilter === ACTIVITY_FILTER_ENQUIRY ? 'results-metric-pill--active' : ''
+                  }`}
+                  onClick={() => handleActivityFilterClick(ACTIVITY_FILTER_ENQUIRY)}
+                  aria-pressed={activityFilter === ACTIVITY_FILTER_ENQUIRY}
+                >
+                  <strong>{topBarMetrics.enquiriesGenerated}</strong> Enquiry
+                </button>
+                <button
+                  type="button"
+                  className={`results-metric-pill results-metric-pill--filter ${
+                    activityFilter === ACTIVITY_FILTER_BUYLEAD ? 'results-metric-pill--active' : ''
+                  }`}
+                  onClick={() => handleActivityFilterClick(ACTIVITY_FILTER_BUYLEAD)}
+                  aria-pressed={activityFilter === ACTIVITY_FILTER_BUYLEAD}
+                >
+                  <strong>{topBarMetrics.buyleadsGenerated}</strong> Buylead
+                </button>
+              </div>
             </div>
-            <form className="tracking-form tracking-form--inline" onSubmit={handleSubmit}>
-              <div className="field-group field-group--compact">
-                <label htmlFor="results-gl-id">User GL ID</label>
-                <input
-                  id="results-gl-id"
-                  name="glId"
-                  type="text"
-                  autoComplete="off"
-                  value={formData.glId}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="field-group field-group--compact">
-                <label htmlFor="results-start-date">Start Date</label>
-                <input
-                  id="results-start-date"
-                  name="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="field-group field-group--compact">
-                <label htmlFor="results-end-date">End Date</label>
-                <input
-                  id="results-end-date"
-                  name="endDate"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner"></span>
-                    <span>Tracking...</span>
-                  </>
-                ) : (
-                  'Track Behavior'
-                )}
-              </button>
-            </form>
             {errorMessage ? <p className="error-text error-text--inline">{errorMessage}</p> : null}
           </header>
 
-          <section className="results-shell">
-            <article className="panel timeline-panel">
+          <section className="results-shell main-layout" ref={layoutRef}>
+            <article
+              className="panel timeline-panel timeline-section"
+              style={{ width: `${leftWidth}%` }}
+            >
               <div className="timeline-panel-header">
                 <h3>Timeline View</h3>
                 <div className="timeline-download-menu">
@@ -727,29 +1064,59 @@ function App() {
               </div>
               <p className="panel-subtitle">
                 User: {journeyData.glusr_id} | {journeyData.glb_city},{' '}
-                {journeyData.gl_country} | Steps: {journeyData.journey.length}
+                {journeyData.gl_country} | Steps: {filteredJourneySteps.length}
               </p>
 
-              {sessionGroups.length > 0 ? (
-                <div className="session-switcher" aria-label="Session selector">
-                  {sessionGroups.map((group) => {
-                    const isActive = group.session === selectedSession
-                    return (
-                      <button
-                        key={`session-tab-${group.session}`}
-                        type="button"
-                        className={`session-switcher-button ${isActive ? 'session-switcher-button--active' : ''}`}
-                        onClick={() => setSelectedSession(group.session)}
-                      >
-                        Session {group.session}
-                      </button>
-                    )
-                  })}
-                </div>
-              ) : null}
+              <div className="date-segment-switcher" aria-label="Date selector">
+                <button
+                  type="button"
+                  className={`date-segment-button ${selectedDate === DATE_FILTER_ALL ? 'date-segment-button--active' : ''}`}
+                  onClick={() => setSelectedDate(DATE_FILTER_ALL)}
+                >
+                  All
+                </button>
+                {availableDates.map((dateItem) => {
+                  const isActive = selectedDate === dateItem.key
+                  return (
+                    <button
+                      key={dateItem.key}
+                      type="button"
+                      className={`date-segment-button ${isActive ? 'date-segment-button--active' : ''}`}
+                      onClick={() => setSelectedDate(dateItem.key)}
+                    >
+                      {dateItem.label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="session-switcher" aria-label="Session selector">
+                <button
+                  type="button"
+                  className={`session-switcher-button ${selectedSession === SESSION_FILTER_ALL ? 'session-switcher-button--active' : ''}`}
+                  onClick={() => setSelectedSession(SESSION_FILTER_ALL)}
+                >
+                  All
+                </button>
+                {sessionGroups.map((group) => {
+                  const isActive = group.session === selectedSession
+                  return (
+                    <button
+                      key={`session-tab-${group.session}`}
+                      type="button"
+                      className={`session-switcher-button ${isActive ? 'session-switcher-button--active' : ''}`}
+                      onClick={() => setSelectedSession(group.session)}
+                    >
+                      Session {group.displaySession}
+                    </button>
+                  )
+                })}
+              </div>
 
               <div className="timeline-list">
-                {visibleSessionGroups.map((group) => {
+                {visibleSessionGroups.length === 0 ? (
+                  <p className="timeline-empty-state">No data for the selected filters.</p>
+                ) : visibleSessionGroups.map((group) => {
                   const sessionPalette = getSessionPalette(group.session)
 
                   return (
@@ -864,9 +1231,10 @@ function App() {
                           '--session-item-bg': sessionPalette.itemBg,
                           '--session-item-border': sessionPalette.itemBorder,
                         }
-                        const pageReferLabel = getReadableReferLabel(step.page_refer)
 
-                        const actionTypeTag = getActionTypeTag(step)
+                        const actionTypeTag = step.is_enquiry
+                          ? 'Enquiry Generated'
+                          : getActionTypeTag(step)
                         const actionTypeTagClass = getActionTypeTagClass(step)
 
                         return (
@@ -888,14 +1256,6 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                     <DirectImagePreview imageUrl={directImagePreviewUrl} />
                                   </>
                                 ) : step.is_buylead_generated || step.is_buylead ? (
@@ -906,14 +1266,6 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                     {step.keyword ? (
                                       <p className="timeline-meta">Keyword: {step.keyword}</p>
                                     ) : null}
@@ -928,14 +1280,6 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                     <EnquiryIntentCard step={step} />
                                   </>
                                 ) : shouldRenderProductPreview ? (
@@ -945,14 +1289,6 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                     <ProductHoverPreview
                                       productUrl={actionUrl}
                                       onMcatResolved={(mcatName) =>
@@ -971,14 +1307,6 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                     <CompanyInlinePreview companyUrl={actionUrl} />
                                   </>
                                 ) : step.is_search ? (
@@ -988,14 +1316,6 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                     <SearchInlinePreview searchUrl={actionUrl} />
                                   </>
                                 ) : (
@@ -1005,27 +1325,11 @@ function App() {
                                         {actionText}
                                       </a>
                                     </p>
-                                    {step.page_refer ? (
-                                      <p className="timeline-refer-row">
-                                        <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                        <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                          {pageReferLabel}
-                                        </a>
-                                      </p>
-                                    ) : null}
                                   </>
                                 )
                               ) : (
                                 <>
                                   <p className="timeline-action-text">{actionText}</p>
-                                  {step.page_refer ? (
-                                    <p className="timeline-refer-row">
-                                      <span className="timeline-refer-label">Page Refer:</span>{' '}
-                                      <a href={step.page_refer} target="_blank" rel="noreferrer">
-                                        {pageReferLabel}
-                                      </a>
-                                    </p>
-                                  ) : null}
                                 </>
                               )}
                               {step.keyword && !step.is_search && !(step.is_buylead_generated || step.is_buylead) ? (
@@ -1074,105 +1378,122 @@ function App() {
               </div>
             </article>
 
-            <aside className="panel audit-panel">
-              <h3>Quick Summary</h3>
-              <p className="panel-subtitle">
-                {selectedSession !== null
-                  ? `Showing summary for Session ${selectedSession}.`
-                  : 'Short audit snapshot to understand behavior quality and drop-offs.'}
-              </p>
+            <div
+              className="resizer"
+              onMouseDown={startResize}
+              onDoubleClick={() => setLeftWidth(60)}
+              role="separator"
+              aria-label="Resize timeline and summary panels"
+              aria-orientation="vertical"
+            />
 
-              <div className="audit-meta-grid">
-                <p>
-                  <span>Session</span>
-                  <strong>{selectedSession ?? '-'}</strong>
-                </p>
-                <p>
-                  <span>Steps</span>
-                  <strong>{sessionAuditSummary.totalSteps}</strong>
-                </p>
-                <p>
-                  <span>Enquiry Raised</span>
-                  <strong>{sessionAuditSummary.enquiriesRaised}</strong>
-                </p>
-                <p>
-                  <span>BuyLead Generated</span>
-                  <strong>{sessionAuditSummary.buyLeadsGenerated}</strong>
-                </p>
+            <aside
+              className="audit-panel summary-section"
+              style={{ width: `${100 - leftWidth}%` }}
+            >
+              <div className="right-panel-split" ref={rightPanelRef}>
+                <section className="summary-pane" style={{ height: `calc(${summaryHeight}% - 4px)` }}>
+                  <h3>Quick Summary</h3>
+                  <div className="summary-container">
+                    <div className="summary-header">
+                      <div className="summary-toggle" role="tablist" aria-label="Summary type">
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={summaryType === 'DATE'}
+                          className={`summary-toggle-button ${summaryType === 'DATE' ? 'summary-toggle-button--active' : ''}`}
+                          onClick={() => setSummaryType('DATE')}
+                        >
+                          Day Wise Summary
+                        </button>
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={summaryType === 'SESSION'}
+                          className={`summary-toggle-button ${summaryType === 'SESSION' ? 'summary-toggle-button--active' : ''}`}
+                          onClick={() => setSummaryType('SESSION')}
+                        >
+                          Session Wise Summary
+                        </button>
+                      </div>
+
+                      <p className="panel-subtitle summary-subtitle">{summaryData.title}</p>
+
+                      <div className="summary-stats-row">
+                        {summaryType === 'DATE' ? (
+                          <span className="summary-stat-pill">Sessions: {summaryData.totalSessions}</span>
+                        ) : null}
+                        <span className="summary-stat-pill">Steps: {summaryData.totalSteps}</span>
+                        <span className="summary-stat-pill">Enquiry: {summaryData.enquiriesGenerated}</span>
+                        <span className="summary-stat-pill">Buylead: {summaryData.buyleadsGenerated}</span>
+                      </div>
+                    </div>
+
+                    <div className="summary-body">
+                      {summaryData.totalSteps === 0 ? (
+                        <p className="audit-note">No activity found.</p>
+                      ) : (
+                        <>
+                          <h4>Top Signals</h4>
+                          {summaryData.topSignals.length > 0 ? (
+                            <div className="summary-signal-tags">
+                              {summaryData.topSignals.map((item) => (
+                                <span key={item} className="summary-signal-tag">{item}</span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="audit-note">No signal activity.</p>
+                          )}
+
+                          <h4>Enquiry Journey Points</h4>
+                          {summaryData.enquiryJourneyPoints.length > 0 ? (
+                            <ul className="audit-list summary-list-compact">
+                              {summaryData.enquiryJourneyPoints.map((item) => (
+                                <li key={item.key} className="summary-journey-item">
+                                  <span className="summary-journey-time">{item.time}</span>
+                                  <span className="summary-journey-detail">
+                                    <span className="summary-journey-key">Product:</span>{' '}
+                                    <span className="summary-journey-value">{item.productLabel}</span>
+                                  </span>
+                                  <span className="summary-journey-detail">
+                                    <span className="summary-journey-key">CTA:</span>{' '}
+                                    <span className="summary-journey-value">{item.ctaLabel}</span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="audit-note">No enquiry journey points.</p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <div
+                  className="right-panel-resizer"
+                  onMouseDown={startRightPanelResize}
+                  onDoubleClick={() => setSummaryHeight(70)}
+                  role="separator"
+                  aria-label="Resize quick summary and llm insights"
+                  aria-orientation="horizontal"
+                />
+
+                <section
+                  className="llm-pane"
+                  ref={llmPaneRef}
+                  style={{ height: `calc(${100 - summaryHeight}% - 4px)` }}
+                >
+                  <LLMInsights
+                    insights={llmInsights}
+                    structuredContext={llmStructuredContext}
+                    loading={llmLoading}
+                    error={llmError}
+                    showChat={showChat}
+                  />
+                </section>
               </div>
-
-              <h4>Top Signals</h4>
-              {sessionAuditSummary.topSignals.length > 0 ? (
-                <ul className="audit-list">
-                  {sessionAuditSummary.topSignals.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="audit-note">No signal activity in this session.</p>
-              )}
-
-              <h4>Top Keyword</h4>
-              <p className="audit-highlight">{sessionAuditSummary.topKeyword}</p>
-
-              {sessionAuditSummary.enquiryMoments.length > 0 ? (
-                <>
-                  <h4>Enquiry Journey Points</h4>
-                  <ul className="audit-list">
-                    {sessionAuditSummary.enquiryMoments.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-
-              {sessionAuditSummary.buyLeadMoments.length > 0 ? (
-                <>
-                  <h4>BuyLead Journey Points</h4>
-                  <ul className="audit-list">
-                    {sessionAuditSummary.buyLeadMoments.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-
-              {sessionAuditSummary.productPagesSeen.length > 0 ? (
-                <>
-                  <h4>Product Pages Seen</h4>
-                  <ul className="audit-link-list">
-                    {sessionAuditSummary.productPagesSeen.map((url) => (
-                      <li key={url}>
-                        <a href={url} target="_blank" rel="noreferrer">
-                          {url}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-
-              {sessionAuditSummary.imageSourcesSeen.length > 0 ? (
-                <>
-                  <h4>Image View Sources</h4>
-                  <ul className="audit-link-list">
-                    {sessionAuditSummary.imageSourcesSeen.map((url) => (
-                      <li key={url}>
-                        <a href={url} target="_blank" rel="noreferrer">
-                          {url}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : null}
-
-              <h4>Audit Note</h4>
-              <p className="audit-note">
-                {journeyData.insights[0] ||
-                  journeyData.apiMeta.message ||
-                  'No specific issue detected.'}
-              </p>
             </aside>
           </section>
         </>

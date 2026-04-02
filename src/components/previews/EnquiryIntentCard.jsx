@@ -6,8 +6,6 @@ function EnquiryIntentCard({ step }) {
     return null
   }
 
-  const productName = step.product || 'Unknown Product'
-  const productId = step.product_id || step.intent_product_id || '-'
   const productUrl = step.product_url || null
   const intentUrl = step.service_url || step.page_url || null
   const isBestPriceIntent = Boolean(step.is_best_price_intent)
@@ -71,29 +69,17 @@ function EnquiryIntentCard({ step }) {
 
   return (
     <section className="enquiry-intent-card" aria-live="polite">
-      <header className="enquiry-intent-header">
-        <span className="enquiry-intent-badge">Enquiry Generated</span>
-      </header>
-
       <p className="enquiry-intent-text">
-        User generated enquiry for <strong>{productName}</strong>
-        {cityText}.
+        User generated enquiry{cityText}.
       </p>
 
       {isResolvingCity && !cityText ? (
         <p className="enquiry-intent-link-row">Resolving city from intent URL...</p>
       ) : null}
 
-      {productUrl ? (
-        <p className="enquiry-intent-link-row">
-          Product URL:{' '}
-          <a href={productUrl} target="_blank" rel="noreferrer">
-            Open Product
-          </a>
-        </p>
-      ) : (
+      {!productUrl ? (
         <p className="enquiry-intent-link-row">Product URL not available</p>
-      )}
+      ) : null}
 
       {isBestPriceIntent ? (
         <section className="enquiry-intent-advanced-box">
@@ -109,7 +95,7 @@ function EnquiryIntentCard({ step }) {
         </section>
       ) : null}
 
-      {productUrl ? <ProductHoverPreview productUrl={productUrl} /> : null}
+      {productUrl ? <ProductHoverPreview productUrl={productUrl} hideTitle={true} /> : null}
     </section>
   )
 }

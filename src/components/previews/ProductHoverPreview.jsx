@@ -23,7 +23,7 @@ const getProductIdFromProductUrl = (productUrl) => {
   return idMatch ? idMatch[1] : token
 }
 
-function ProductHoverPreview({ productUrl, onMcatResolved }) {
+function ProductHoverPreview({ productUrl, onMcatResolved, hideTitle = false }) {
   if (!productUrl) {
     return null
   }
@@ -74,8 +74,10 @@ function ProductHoverPreview({ productUrl, onMcatResolved }) {
 
       setPreviewData(payload.data)
       setResolvedPreviewUrl(payload.url || productUrl)
-      if (payload?.data?.breadcrumb?.mcat) {
-        onMcatResolved?.(payload.data.breadcrumb.mcat)
+      const mcatName = payload?.data?.breadcrumb?.mcat || null
+      const mcatId = payload?.data?.breadcrumb?.mcatId || null
+      if (mcatName || mcatId) {
+        onMcatResolved?.({ mcatName, mcatId })
       }
       setPreviewState('ready')
     } catch (error) {
@@ -94,6 +96,22 @@ function ProductHoverPreview({ productUrl, onMcatResolved }) {
     loadPreview()
   }, [productUrl])
 
+  const openPreviewPage = () => {
+    const targetUrl = resolvedPreviewUrl || productUrl
+    if (!targetUrl) {
+      return
+    }
+
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleCardKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openPreviewPage()
+    }
+  }
+
   return (
     <section className="product-preview-inline" aria-live="polite">
       <header className="product-preview-inline-header">
@@ -109,7 +127,14 @@ function ProductHoverPreview({ productUrl, onMcatResolved }) {
       ) : null}
 
       {previewState === 'ready' && previewData ? (
-        <div className="product-preview-card">
+        <div
+          className="product-preview-card product-preview-card--clickable"
+          role="link"
+          tabIndex={0}
+          aria-label="Open product page"
+          onClick={openPreviewPage}
+          onKeyDown={handleCardKeyDown}
+        >
           {previewData.image ? (
             <img
               src={previewData.image}
@@ -118,38 +143,23 @@ function ProductHoverPreview({ productUrl, onMcatResolved }) {
             />
           ) : null}
           <div className="product-preview-info">
-            <h4 className="product-preview-title">{previewData.title}</h4>
+            {!hideTitle ? <h4 className="product-preview-title">{previewData.title}</h4> : null}
             <p className="product-preview-price">{previewData.price}</p>
+            {previewData?.breadcrumb?.mcatId ? (
+              <p className="product-preview-rating">Mcat Id: {previewData.breadcrumb.mcatId}</p>
+            ) : null}
             {previewData?.breadcrumb?.mcat ? (
-              <p className="product-preview-rating">mCat: {previewData.breadcrumb.mcat}</p>
+              <p className="product-preview-rating">Mcat Name: {previewData.breadcrumb.mcat}</p>
             ) : null}
             {previewData.rating ? (
               <p className="product-preview-rating">Rating: {previewData.rating} / 5</p>
             ) : null}
-            <a
-              href={resolvedPreviewUrl || productUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="product-preview-open"
-            >
-              Open product page
-            </a>
           </div>
         </div>
       ) : null}
 
       {previewState === 'error' ? (
-        <span className="product-preview-error">
-          {previewError}
-          <a
-            href={resolvedPreviewUrl || productUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="product-preview-open"
-          >
-            Open product page
-          </a>
-        </span>
+        <span className="product-preview-error">{previewError}</span>
       ) : null}
     </section>
   )
