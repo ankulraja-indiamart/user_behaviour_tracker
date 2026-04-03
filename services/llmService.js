@@ -1,4 +1,4 @@
-const DEFAULT_LLM_MODEL = process.env.LLM_MODEL?.trim() || 'google/gemini-2.5-flash'
+const DEFAULT_LLM_MODEL = process.env.LLM_MODEL?.trim() || 'openai/gpt-4.1-mini'
 const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS || 45000)
 
 const normalizeBaseUrl = (value) => value.replace(/\/+$/, '')

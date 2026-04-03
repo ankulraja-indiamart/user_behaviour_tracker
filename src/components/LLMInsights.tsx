@@ -17,6 +17,35 @@ type ChatMessage = {
   timestamp: string
 }
 
+type ConversationTurn = {
+  question: string
+  answer: string
+}
+
+type ConversationMemory = {
+  summary: string
+  recent_turns: ConversationTurn[]
+}
+
+type SalientEvent = {
+  session_id: number | null
+  step: number | null
+  timestamp: string
+  type: string
+  title: string
+  page: string
+  product_name: string
+  action: string
+}
+
+type OptimizedContext = {
+  journey_summary: string
+  user_intent: string
+  drop_reason: string
+  salient_events: SalientEvent[]
+  conversation_memory: ConversationMemory
+}
+
 type LLMInsightsProps = {
   insights: unknown
   structuredContext: unknown
@@ -33,6 +62,11 @@ const EMPTY_INSIGHTS: InsightPayload = {
   opportunities: [],
   anomalies: [],
 }
+
+const MAX_SALIENT_EVENTS = 5
+const MAX_RECENT_TURNS = 3
+const MAX_MEMORY_SUMMARY_CHARS = 500
+const MAX_MEMORY_TEXT_CHARS = 220
 
 const toText = (value: unknown) => {
   if (typeof value === 'string') {
@@ -101,6 +135,203 @@ const parseMaybeJson = (value: unknown) => {
   }
 }
 
+const normalizeText = (value: unknown, maxLength = MAX_MEMORY_TEXT_CHARS) => {
+  const text = toText(value).replace(/\s+/g, ' ').trim()
+
+  if (!text) {
+    return ''
+  }
+
+  if (text.length <= maxLength) {
+    return text
+  }
+
+  return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`
+}
+
+const normalizeStructuredContext = (value: unknown) => {
+  const parsed = parseMaybeJson(value)
+  return parsed && typeof parsed === 'object' ? parsed : null
+}
+
+const getUserStats = (structuredContext: Record<string, unknown> | null) => {
+  const user = structuredContext && typeof structuredContext.user === 'object'
+    ? (structuredContext.user as Record<string, unknown>)
+    : null
+
+  const totalSessions = Number(user?.totalSessions ?? 0)
+  const totalActivities = Number(user?.totalActivities ?? 0)
+
+  return {
+    totalSessions: Number.isFinite(totalSessions) ? totalSessions : 0,
+    totalActivities: Number.isFinite(totalActivities) ? totalActivities : 0,
+  }
+}
+
+const deriveJourneySummary = (
+  structuredContext: Record<string, unknown> | null,
+  insights: InsightPayload,
+) => {
+  if (insights.summary) {
+    return normalizeText(insights.summary, 320)
+  }
+
+  const stats = getUserStats(structuredContext)
+  const summaryParts: string[] = []
+
+  if (stats.totalSessions > 0) {
+    summaryParts.push(`${stats.totalSessions} sessions`)
+  }
+
+  if (stats.totalActivities > 0) {
+    summaryParts.push(`${stats.totalActivities} activities`)
+  }
+
+  if (summaryParts.length > 0) {
+    return normalizeText(`Journey covers ${summaryParts.join(' and ')}.`, 320)
+  }
+
+  return 'Journey context is available for follow-up questions.'
+}
+
+const deriveUserIntent = (insights: InsightPayload) => {
+  if (insights.intent) {
+    return normalizeText(insights.intent, 240)
+  }
+
+  return 'User intent is not explicitly stated in the available summary.'
+}
+
+const deriveDropReason = (insights: InsightPayload) => {
+  if (insights.dropOffPoints.length > 0) {
+    return normalizeText(insights.dropOffPoints.slice(0, 2).join('; '), 240)
+  }
+
+  return 'No clear drop reason was identified in the current summary.'
+}
+
+const buildSalientEvents = (structuredContext: Record<string, unknown> | null) => {
+  const sessions = Array.isArray(structuredContext?.sessions)
+    ? (structuredContext?.sessions as Array<Record<string, unknown>>)
+    : []
+
+  const flattenedEvents: SalientEvent[] = []
+
+  sessions.forEach((session) => {
+    const activities = Array.isArray(session?.activities)
+      ? (session.activities as Array<Record<string, unknown>>)
+      : []
+
+    activities.forEach((activity) => {
+      const activityMetadata =
+        activity?.metadata && typeof activity.metadata === 'object'
+          ? (activity.metadata as Record<string, unknown>)
+          : null
+
+      const sessionIdValue = session?.sessionId ?? activityMetadata?.sessionId ?? null
+
+      flattenedEvents.push({
+        session_id: Number.isFinite(Number(sessionIdValue)) ? Number(sessionIdValue) : null,
+        step: Number.isFinite(Number(activity?.step)) ? Number(activity?.step) : null,
+        timestamp: normalizeText(activity?.timestamp, 80),
+        type: normalizeText(activity?.type, 40),
+        title: normalizeText(activity?.action || activity?.productName || activity?.page || '-', 140),
+        page: normalizeText(activity?.page, 120),
+        product_name: normalizeText(activity?.productName, 120),
+        action: normalizeText(activity?.action || '-', 120),
+      })
+    })
+  })
+
+  const importantTypes = new Set(['BUYLEAD', 'ENQUIRY', 'PRODUCT_VIEW'])
+  const prioritized = [
+    ...flattenedEvents.filter((event) => importantTypes.has(String(event.type || '').toUpperCase())),
+    ...flattenedEvents.filter((event) => !importantTypes.has(String(event.type || '').toUpperCase())),
+  ]
+
+  const seen = new Set<string>()
+  const result: SalientEvent[] = []
+
+  for (const event of prioritized) {
+    const signature = [
+      event.session_id ?? '-',
+      event.step ?? '-',
+      event.timestamp,
+      event.type,
+      event.title,
+      event.page,
+    ].join('|')
+
+    if (seen.has(signature)) {
+      continue
+    }
+
+    seen.add(signature)
+    result.push(event)
+
+    if (result.length >= MAX_SALIENT_EVENTS) {
+      break
+    }
+  }
+
+  return result
+}
+
+const buildOptimizedContext = (
+  structuredContext: Record<string, unknown> | null,
+  insights: InsightPayload,
+): OptimizedContext | null => {
+  if (!structuredContext) {
+    return null
+  }
+
+  return {
+    journey_summary: deriveJourneySummary(structuredContext, insights),
+    user_intent: deriveUserIntent(insights),
+    drop_reason: deriveDropReason(insights),
+    salient_events: buildSalientEvents(structuredContext),
+    conversation_memory: {
+      summary: '',
+      recent_turns: [],
+    },
+  }
+}
+
+const summarizeTurn = (turn: ConversationTurn) =>
+  `Q: ${normalizeText(turn.question, 140)} | A: ${normalizeText(turn.answer, 180)}`
+
+const trimMemorySummary = (summary: string) => {
+  if (summary.length <= MAX_MEMORY_SUMMARY_CHARS) {
+    return summary
+  }
+
+  return summary.slice(summary.length - MAX_MEMORY_SUMMARY_CHARS)
+}
+
+const updateConversationMemory = (
+  memory: ConversationMemory,
+  question: string,
+  answer: string,
+): ConversationMemory => {
+  const nextTurns = [...memory.recent_turns, { question, answer }]
+
+  if (nextTurns.length <= MAX_RECENT_TURNS) {
+    return {
+      summary: trimMemorySummary(memory.summary),
+      recent_turns: nextTurns,
+    }
+  }
+
+  const overflowTurns = nextTurns.slice(0, nextTurns.length - MAX_RECENT_TURNS)
+  const compressedOverflow = overflowTurns.map((turn) => summarizeTurn(turn)).join(' || ')
+  const combinedSummary = [memory.summary, compressedOverflow].filter(Boolean).join(' || ')
+
+  return {
+    summary: trimMemorySummary(combinedSummary),
+    recent_turns: nextTurns.slice(-MAX_RECENT_TURNS),
+  }
+}
+
 const normalizeInsights = (value: unknown): InsightPayload => {
   const parsed = parseMaybeJson(value)
 
@@ -148,7 +379,11 @@ const nowLabel = () =>
   })
 
 function LLMInsights({ insights, structuredContext, loading, error, showChat }: LLMInsightsProps) {
-  const normalizedInsights = normalizeInsights(insights)
+  const normalizedInsights = useMemo(() => normalizeInsights(insights), [insights])
+  const normalizedStructuredContext = useMemo(
+    () => normalizeStructuredContext(structuredContext),
+    [structuredContext],
+  )
   const hasInsights =
     Boolean(normalizedInsights.summary) ||
     Boolean(normalizedInsights.intent) ||
@@ -211,13 +446,20 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
     return lines.join('\n').trim()
   }, [hasInsights, normalizedInsights])
 
+  const optimizedContext = useMemo(
+    () => buildOptimizedContext(normalizedStructuredContext, normalizedInsights),
+    [normalizedStructuredContext, normalizedInsights],
+  )
+
   const [chatInput, setChatInput] = useState('')
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatError, setChatError] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [chatContext, setChatContext] = useState<OptimizedContext | null>(null)
   const historyRef = useRef<HTMLDivElement | null>(null)
   const typingTimerRef = useRef<number | null>(null)
   const insightsSignatureRef = useRef('')
+  const chatContextRef = useRef<OptimizedContext | null>(null)
 
   useEffect(() => {
     return () => {
@@ -245,9 +487,22 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
     }
 
     insightsSignatureRef.current = ''
+    chatContextRef.current = null
+    setChatContext(null)
     setChatMessages([])
     setChatError('')
   }, [loading])
+
+  useEffect(() => {
+    if (loading || error || !optimizedContext) {
+      chatContextRef.current = null
+      setChatContext(null)
+      return
+    }
+
+    chatContextRef.current = optimizedContext
+    setChatContext(optimizedContext)
+  }, [error, loading, optimizedContext])
 
   useEffect(() => {
     const signature = JSON.stringify(normalizedInsights)
@@ -324,7 +579,9 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
     event.preventDefault()
 
     const question = chatInput.trim()
-    if (!question || chatLoading || !structuredContext) {
+    const currentContext = chatContextRef.current
+
+    if (!question || chatLoading || !currentContext) {
       return
     }
 
@@ -349,7 +606,7 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
         },
         body: JSON.stringify({
           question,
-          context: structuredContext,
+          context: currentContext,
         }),
       })
 
@@ -360,6 +617,18 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
       }
 
       const assistantText = toChatText(payload?.data) || 'No response returned.'
+      const nextMemory = updateConversationMemory(
+        currentContext.conversation_memory,
+        question,
+        assistantText,
+      )
+      const nextContext = {
+        ...currentContext,
+        conversation_memory: nextMemory,
+      }
+
+      chatContextRef.current = nextContext
+      setChatContext(nextContext)
       appendAssistantWithTyping(assistantText)
     } catch (chatRequestError) {
       const errorText =
@@ -372,7 +641,7 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
     }
   }
 
-  const canChat = Boolean(structuredContext) && !loading
+  const canChat = Boolean(chatContext) && !loading
 
   return (
     <div className="llm-insights-shell">

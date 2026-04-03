@@ -114,10 +114,11 @@ function ProductHoverPreview({ productUrl, onMcatResolved, hideTitle = false }) 
 
   return (
     <section className="product-preview-inline" aria-live="polite">
-      <header className="product-preview-inline-header">
-        <span className="product-preview-badge">Preview</span>
-        {previewId ? <span className="product-preview-id">PID {previewId}</span> : null}
-      </header>
+      {previewId ? (
+        <header className="product-preview-inline-header">
+          <span className="product-preview-id">PID {previewId}</span>
+        </header>
+      ) : null}
 
       {previewState === 'loading' || previewState === 'idle' ? (
         <span className="product-preview-loading">

@@ -45,10 +45,11 @@ const formatDayLabel = (dayKey) => {
     return dayKey
   }
 
-  return parsed.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
+  const monthShort = parsed.toLocaleDateString('en-GB', {
+    month: 'short',
   })
+
+  return `${String(parsed.getDate()).padStart(2, '0')}/${monthShort}`
 }
 
 const getAvailableDates = (journeySteps) => {
