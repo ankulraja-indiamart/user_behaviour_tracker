@@ -14,3 +14,30 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Frontend API Configuration
+
+Frontend API calls are centralized and environment-driven.
+
+- Base URL config: `src/config/api.js`
+- Reusable fetch wrapper: `src/services/apiClient.js`
+
+Set the backend URL in `.env`:
+
+```env
+# Preferred for Vite
+VITE_API_URL=http://localhost:5000
+
+# Optional compatibility alias
+REACT_APP_API_URL=http://localhost:5000
+```
+
+Environment examples:
+
+- Local: `VITE_API_URL=http://localhost:5000`
+- Dev/Test (ngrok): `VITE_API_URL=https://your-subdomain.ngrok-free.app`
+- Production: `VITE_API_URL=https://api.yourdomain.com`
+
+Fallback behavior:
+
+- If no env URL is set, frontend falls back to `http://localhost:5000`.

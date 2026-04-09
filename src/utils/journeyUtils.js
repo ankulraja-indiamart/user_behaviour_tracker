@@ -1842,6 +1842,112 @@ const toTitleCase = (value) => {
     .join(' ')
 }
 
+const INDIAN_REGION_CODES = new Set([
+  'AN',
+  'AP',
+  'AR',
+  'AS',
+  'BR',
+  'CH',
+  'CT',
+  'DD',
+  'DL',
+  'DN',
+  'GA',
+  'GJ',
+  'HP',
+  'HR',
+  'JH',
+  'JK',
+  'KA',
+  'KL',
+  'LA',
+  'LD',
+  'MH',
+  'ML',
+  'MN',
+  'MP',
+  'MZ',
+  'NL',
+  'OD',
+  'PB',
+  'PY',
+  'RJ',
+  'SK',
+  'TG',
+  'TN',
+  'TR',
+  'UP',
+  'UT',
+  'WB',
+])
+
+const normalizeCountryCode = (rawCountry) => {
+  const value = String(rawCountry || '').trim()
+  if (!value || value === '-') {
+    return null
+  }
+
+  if (/^[A-Za-z]{2}$/.test(value)) {
+    return value.toUpperCase()
+  }
+
+  const normalized = value.toLowerCase()
+  if (normalized === 'india' || normalized === 'ind') {
+    return 'IN'
+  }
+
+  return null
+}
+
+const getCountryDisplayName = (countryCode) => {
+  const code = String(countryCode || '').toUpperCase()
+  if (!/^[A-Z]{2}$/.test(code)) {
+    return ''
+  }
+
+  try {
+    const displayNames = new Intl.DisplayNames(['en'], { type: 'region' })
+    return displayNames.of(code) || code
+  } catch {
+    return code
+  }
+}
+
+const formatNavbarLocation = ({ city, country } = {}) => {
+  const cityInput = String(city || '').trim()
+  const rawCity = cityInput === '-' ? '' : cityInput
+  const rawCountry = String(country || '').trim()
+  const countryCode = normalizeCountryCode(rawCountry)
+  const normalizedCountry = rawCountry.toUpperCase()
+  const isIndia =
+    countryCode === 'IN' ||
+    rawCountry.toLowerCase() === 'india' ||
+    INDIAN_REGION_CODES.has(normalizedCountry)
+
+  if (!rawCity && !rawCountry) {
+    return {
+      label: '',
+    }
+  }
+
+  if (isIndia) {
+    const suffix = INDIAN_REGION_CODES.has(normalizedCountry) ? normalizedCountry : 'IN'
+    const cityLabel = rawCity ? toTitleCase(rawCity) : 'India'
+    return {
+      label: rawCity ? `${cityLabel}, ${suffix}` : cityLabel,
+    }
+  }
+
+  const fullCountryName =
+    getCountryDisplayName(countryCode) ||
+    (rawCountry ? toTitleCase(rawCountry) : '')
+
+  return {
+    label: fullCountryName,
+  }
+}
+
 const getActionTypeTag = (step) => {
   if (step.is_buylead_generated || step.is_buylead) {
     return 'BuyLead Generated'
@@ -1972,12 +2078,93 @@ const buildGenericActionText = (step) => {
   return `User ${activity.verb} ${targetText}${cityText}`
 }
 
+const getActivityActionText = (step) => {
+  if (!step) return 'Activity'
+
+  // Enquiry text
+  const enquiryActionText = step.is_best_price_intent
+    ? step.product
+      ? step.city
+        ? `User requested best price for "${step.product}" in ${step.city}`
+        : `User requested best price for "${step.product}"`
+      : 'User requested best price through enquiry intent'
+    : step.product
+      ? step.city
+        ? `User generated enquiry for "${step.product}" in ${step.city}`
+        : `User generated enquiry for "${step.product}"`
+      : 'User generated an enquiry intent'
+
+  // Mcat page text
+  const mcatActionText = step.mcat_page_name
+    ? step.city
+      ? `User opened Mcat page (${toTitleCase(step.mcat_page_name)}) in ${step.city}`
+      : `User opened Mcat page (${toTitleCase(step.mcat_page_name)})`
+    : step.city
+      ? `User opened Mcat page in ${step.city}`
+      : 'User opened Mcat page'
+
+  // Search text
+  const searchActionText = step.keyword
+    ? step.search_action === 'filter_applied'
+      ? `User applied filters on "${step.keyword}"${step.search_filters?.city ? ` in ${step.search_filters.city}` : ''}${step.search_filters?.price ? ` with price ${step.search_filters.price}` : ''}`
+      : step.search_city
+        ? `User searched "${step.keyword}" in ${step.search_city}`
+        : `User searched "${step.keyword}"`
+    : step.type || 'User performed a search'
+
+  // Product view text
+  const pdpActionText = 'User Saw PDP page'
+  const productActionName = step.product || null
+  const productActionText = productActionName
+    ? `User viewed "${productActionName}"`
+    : 'User viewed a product'
+
+  // Image view text
+  const imageActionText = productActionName
+    ? step.image_view_city
+      ? `User viewed "${productActionName}" in ${step.image_view_city}`
+      : `User viewed "${productActionName}"`
+    : 'User viewed a product'
+
+  // Supplier text
+  const supplierActionText = 'Open company page'
+
+  // Generic text
+  const genericActionText = buildGenericActionText(step)
+
+  // Check if product related
+  const isProductRelated = Boolean(step.product_id) || step.is_product_view || step.is_image_view
+
+  // Decision tree: determine which action text to use
+  const actionText = step.is_buylead_generated || step.is_buylead
+    ? 'BuyLead Generated'
+    : step.is_enquiry
+      ? enquiryActionText
+      : step.is_mcat_page
+        ? mcatActionText
+        : step.is_search
+          ? searchActionText
+          : step.is_supplier_view
+            ? supplierActionText
+            : step.is_product_view
+              ? pdpActionText
+              : step.is_image_view
+                ? imageActionText
+                : isProductRelated
+                  ? productActionText
+                  : genericActionText
+
+  return actionText
+}
+
 export {
   buildJourneyFromLogs,
   buildSearchUrl,
+  formatNavbarLocation,
   getSessionPalette,
   getActionTypeTag,
   getActionTypeTagClass,
   toTitleCase,
   buildGenericActionText,
+  getActivityActionText,
 }

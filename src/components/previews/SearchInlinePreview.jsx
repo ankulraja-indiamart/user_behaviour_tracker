@@ -1,50 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-
-const decodeSafe = (value) => {
-  try {
-    return decodeURIComponent(String(value || '').replace(/\+/g, ' '))
-  } catch {
-    return String(value || '')
-  }
-}
-
-const getSearchSignalsFromUrl = (urlValue) => {
-  try {
-    const parsed = new URL(urlValue)
-    const params = parsed.searchParams
-    const minPrice = params.get('minprice')
-    const maxPrice = params.get('maxprice')
-    const sourceRaw = decodeSafe(params.get('src') || '')
-    const source = sourceRaw ? sourceRaw.split('|')[0] : ''
-
-    return {
-      path: parsed.pathname || '',
-      query:
-        params.get('ss') ||
-        params.get('q') ||
-        params.get('keyword') ||
-        '',
-      city: params.get('cq') || params.get('city') || '',
-      priceRange:
-        minPrice || maxPrice
-          ? `${minPrice || '-'} to ${maxPrice || '-'}`
-          : '',
-      source,
-      prdsrc: params.get('prdsrc') || '',
-      tags: decodeSafe(params.get('tags') || ''),
-    }
-  } catch {
-    return {
-      path: '',
-      query: '',
-      city: '',
-      priceRange: '',
-      source: '',
-      prdsrc: '',
-      tags: '',
-    }
-  }
-}
+import { parseSearchMetadata } from '../../utils/searchMetadata'
+import { apiFetch } from '../../services/apiClient'
 
 function SearchInlinePreview({ searchUrl }) {
   if (!searchUrl) {
@@ -56,40 +12,11 @@ function SearchInlinePreview({ searchUrl }) {
   const [previewError, setPreviewError] = useState('')
   const [resolvedSearchUrl, setResolvedSearchUrl] = useState(searchUrl)
   const activeAbortController = useRef(null)
-
-  const getSearchContext = () => {
-    if (!searchUrl) {
-      return {
-        query: '',
-        city: '',
-      }
-    }
-
-    try {
-      const parsed = new URL(searchUrl)
-      return {
-        query:
-          previewData?.query ||
-          parsed.searchParams.get('ss') ||
-          parsed.searchParams.get('q') ||
-          parsed.searchParams.get('keyword') ||
-          '',
-        city:
-          previewData?.city ||
-          parsed.searchParams.get('cq') ||
-          parsed.searchParams.get('city') ||
-          '',
-      }
-    } catch {
-      return {
-          query: previewData?.query || '',
-          city: previewData?.city || '',
-      }
-    }
-  }
-
-  const searchContext = getSearchContext()
-  const searchSignals = getSearchSignalsFromUrl(resolvedSearchUrl || searchUrl)
+  const searchMetadata = parseSearchMetadata({
+    url: resolvedSearchUrl || searchUrl,
+    query: previewData?.query,
+    city: previewData?.city,
+  })
 
   useEffect(() => {
     setPreviewState('idle')
@@ -113,7 +40,7 @@ function SearchInlinePreview({ searchUrl }) {
     setPreviewError('')
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/search-preview?url=${encodeURIComponent(searchUrl)}`,
         {
           method: 'GET',
@@ -149,16 +76,11 @@ function SearchInlinePreview({ searchUrl }) {
 
   return (
     <section className="search-preview-inline" aria-live="polite">
-      <header className="search-preview-inline-header">
-        <span className="search-preview-badge">Search Result</span>
-        {searchContext.query ? (
-          <span className="search-preview-query">
-            {searchContext.city
-              ? `${searchContext.query} in ${searchContext.city}`
-              : searchContext.query}
-          </span>
-        ) : null}
-      </header>
+      {searchMetadata.query ? (
+        <p className="search-preview-query">
+          {searchMetadata.city ? `${searchMetadata.query} in ${searchMetadata.city}` : searchMetadata.query}
+        </p>
+      ) : null}
 
       {previewState === 'loading' || previewState === 'idle' ? (
         <span className="search-preview-loading">
@@ -173,14 +95,11 @@ function SearchInlinePreview({ searchUrl }) {
           {previewData.resultCount ? (
             <p className="search-preview-count">{previewData.resultCount} results found</p>
           ) : null}
-          {searchSignals.city ? (
-            <p className="search-preview-description">City: {searchSignals.city}</p>
+          {searchMetadata.city ? (
+            <p className="search-preview-description">City: {searchMetadata.city}</p>
           ) : null}
-          {searchSignals.priceRange ? (
-            <p className="search-preview-description">Price Filter: {searchSignals.priceRange}</p>
-          ) : null}
-          {searchSignals.tags ? (
-            <p className="search-preview-description">Tags: {searchSignals.tags}</p>
+          {searchMetadata.priceRange ? (
+            <p className="search-preview-description">Price Filter: {searchMetadata.priceRange}</p>
           ) : null}
           {Array.isArray(previewData.topResults) && previewData.topResults.length > 0 ? (
             <ul className="search-preview-list">

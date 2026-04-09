@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { apiFetch } from '../../services/apiClient'
 
 function CompanyInlinePreview({ companyUrl }) {
   if (!companyUrl) {
@@ -33,7 +34,7 @@ function CompanyInlinePreview({ companyUrl }) {
     setPreviewError('')
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/company-preview?url=${encodeURIComponent(companyUrl)}`,
         {
           method: 'GET',
@@ -69,10 +70,6 @@ function CompanyInlinePreview({ companyUrl }) {
 
   return (
     <section className="company-preview-inline" aria-live="polite">
-      <header className="company-preview-inline-header">
-        <span className="company-preview-badge">User View Company Page</span>
-      </header>
-
       {previewState === 'loading' || previewState === 'idle' ? (
         <span className="company-preview-loading">
           <span className="spinner"></span>

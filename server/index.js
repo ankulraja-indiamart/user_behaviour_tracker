@@ -8,6 +8,12 @@ dotenv.config({ override: true })
 const app = express()
 const port = Number(process.env.SERVER_PORT || 5000)
 const DEBUG_PDP_PARSER = process.env.DEBUG_PDP_PARSER === '1'
+const allowedCorsOrigins = String(
+  process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5173',
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 const debugPdp = (...args) => {
   if (DEBUG_PDP_PARSER) {
@@ -16,6 +22,26 @@ const debugPdp = (...args) => {
 }
 
 app.use(express.json())
+
+app.use((req, res, next) => {
+  const origin = String(req.headers.origin || '').trim()
+  const allowAllOrigins = allowedCorsOrigins.includes('*')
+  const isAllowedOrigin = allowAllOrigins || allowedCorsOrigins.includes(origin)
+
+  if (origin && isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204)
+  }
+
+  return next()
+})
 
 const ALLOWED_PREVIEW_HOST_SUFFIX = '.indiamart.com'
 

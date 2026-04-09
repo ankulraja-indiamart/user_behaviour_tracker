@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ProductHoverPreview from './ProductHoverPreview'
+import { apiFetch } from '../../services/apiClient'
 
 function EnquiryIntentCard({ step }) {
   if (!step?.is_enquiry) {
@@ -29,7 +30,7 @@ function EnquiryIntentCard({ step }) {
       setIsResolvingCity(true)
 
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           `/api/intent-preview?url=${encodeURIComponent(intentUrl)}`,
           {
             method: 'GET',
@@ -69,10 +70,6 @@ function EnquiryIntentCard({ step }) {
 
   return (
     <section className="enquiry-intent-card" aria-live="polite">
-      <p className="enquiry-intent-text">
-        User generated enquiry{cityText}.
-      </p>
-
       {isResolvingCity && !cityText ? (
         <p className="enquiry-intent-link-row">Resolving city from intent URL...</p>
       ) : null}
@@ -83,7 +80,6 @@ function EnquiryIntentCard({ step }) {
 
       {isBestPriceIntent ? (
         <section className="enquiry-intent-advanced-box">
-          <p className="enquiry-intent-advanced-title">User Wants to Know the Best Price</p>
           <p className="enquiry-intent-advanced-text">
             User generated an advanced enquiry to get the latest/best price for this product.
           </p>

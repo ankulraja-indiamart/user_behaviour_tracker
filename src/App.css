@@ -93,7 +93,8 @@
   font-weight: 600;
 }
 
-.field-group input {
+.field-group input,
+.field-group .date-picker-input {
   font: inherit;
   font-size: 0.96rem;
   color: #2f1f12;
@@ -104,14 +105,22 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.field-group input::placeholder {
+.field-group input::placeholder,
+.field-group .date-picker-input::placeholder {
   color: rgba(91, 63, 40, 0.58);
 }
 
-.field-group input:focus {
+.field-group input:focus,
+.field-group .date-picker-input:focus {
   border-color: #ad6f2f;
   outline: none;
   box-shadow: 0 0 0 3px rgba(187, 124, 63, 0.2);
+}
+
+.field-group .react-datepicker-wrapper,
+.field-group .react-datepicker__input-container {
+  width: 100%;
+  display: block;
 }
 
 .date-grid {
@@ -230,20 +239,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.55rem;
+  gap: 0.75rem;
   min-height: 0;
 }
 
 .tracking-form--inline {
-  flex: 1 1 65%;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
   margin: 0;
-  grid-template-columns: minmax(180px, 1.2fr) minmax(140px, 1fr) minmax(140px, 1fr) auto;
-  gap: 0.36rem;
-  align-items: end;
+  gap: 0.62rem;
+  min-width: 0;
 }
 
 .field-group--compact {
   gap: 0;
+  flex: 0 0 auto;
+}
+
+.field-group--glid {
+  max-width: 140px;
+}
+
+.field-group--date {
+  max-width: 146px;
 }
 
 .field-group--compact label {
@@ -258,26 +278,200 @@
   border: 0;
 }
 
-.field-group--compact input {
-  padding: 0.36rem 0.54rem;
+.field-group--compact input,
+.field-group--compact .date-picker-input {
+  width: 100%;
+  min-height: 34px;
+  padding: 0.34rem 0.52rem;
   border-radius: 0.6rem;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
+  box-sizing: border-box;
+}
+
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input-wrapper .date-picker-input {
+  padding-right: 2.4rem !important;
+  width: 100%;
+}
+
+.date-input-wrapper .calendar-icon {
+  position: absolute;
+  right: 0.58rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #ad6f2f;
+  pointer-events: none;
+  opacity: 0.78;
+}
+
+.date-input-wrapper--compact .date-picker-input {
+  padding-right: 2rem !important;
+}
+
+.date-input-wrapper--compact .calendar-icon {
+  right: 0.38rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container {
+  display: flex;
+  width: 100%;
+}
+
+.react-datepicker-popper {
+  z-index: 60;
+  max-width: 400px;
+  box-shadow: 0 10px 34px rgba(83, 49, 22, 0.18);
+  border: 1px solid rgba(120, 70, 25, 0.15);
+  border-radius: 0.7rem;
+  padding: 0;
+}
+
+.react-datepicker {
+  background-color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: #2f1f12;
+}
+
+.react-datepicker__month-container {
+  padding: 0.85rem 0.9rem;
+}
+
+.react-datepicker__header {
+  background-color: #f8f4f0;
+  border: none;
+  border-radius: 0.6rem;
+  margin-bottom: 0.6rem;
+  padding: 0.8rem;
+}
+
+.react-datepicker__day-names {
+  background-color: #f3ede5;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day {
+  color: #2f1f12;
+  font-size: 0.88rem;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__current-month-button {
+  font-weight: 600;
+  color: #543116;
+}
+
+.react-datepicker__navigation-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  background-color: #fffaf1;
+  border: 1px solid rgba(120, 70, 25, 0.2);
+  border-radius: 0.5rem;
+  color: #ad6f2f;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.react-datepicker__navigation-button:hover {
+  background-color: #ad6f2f;
+  color: #fffaf1;
+  border-color: #ad6f2f;
+}
+
+.react-datepicker__day {
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  margin: 0.3rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.react-datepicker__day:hover {
+  background-color: #f0e5d8;
+  transform: scale(1.05);
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--today {
+  background-color: #ad6f2f;
+  color: #fffaf1;
+  font-weight: 600;
+}
+
+.react-datepicker__day--selected:hover {
+  background-color: #9f5125;
+}
+
+.react-datepicker__day--in-range {
+  background-color: #e8dcd0;
+  color: #2f1f12;
+}
+
+.react-datepicker__day--disabled {
+  color: #ccc;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .tracking-form--inline button {
-  padding: 0.36rem 0.74rem;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0.34rem 0.72rem;
   border-radius: 0.62rem;
   font-size: 0.82rem;
   white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.results-location-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+  border: 1px solid rgba(44, 108, 110, 0.34);
+  border-radius: 0.56rem;
+  background: linear-gradient(180deg, rgba(233, 248, 248, 0.96) 0%, rgba(220, 242, 242, 0.92) 100%);
+  color: #1f5f61;
+  font-size: 0.79rem;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 0.3rem 0.56rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .results-metrics {
-  flex: 0 1 35%;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.28rem;
+  gap: 0.35rem;
   min-width: 0;
+  margin-left: auto;
 }
 
 .results-metrics-caption {
@@ -494,9 +688,19 @@
 
 .session-switcher {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.45rem;
   margin: 0 0 0.7rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.05rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.session-switcher::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .session-switcher-button {
@@ -509,6 +713,8 @@
   letter-spacing: 0.02em;
   padding: 0.3rem 0.72rem;
   cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .session-switcher-button:hover {
@@ -646,18 +852,6 @@
   gap: 0.5rem;
 }
 
-.product-preview-badge {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #7e4e1e;
-  background: rgba(230, 189, 139, 0.34);
-  border: 1px solid rgba(143, 78, 28, 0.22);
-  border-radius: 999px;
-  padding: 0.18rem 0.48rem;
-}
-
 .product-preview-id {
   color: #6a492e;
   font-size: 0.7rem;
@@ -780,30 +974,12 @@
   min-width: 0;
 }
 
-.search-preview-inline-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.search-preview-badge {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #1f4e8f;
-  background: rgba(140, 184, 238, 0.32);
-  border: 1px solid rgba(41, 94, 153, 0.26);
-  border-radius: 999px;
-  padding: 0.18rem 0.48rem;
-}
-
 .search-preview-query {
   color: #274f7c;
   font-size: 0.7rem;
   font-weight: 600;
   overflow-wrap: anywhere;
+  margin: 0;
 }
 
 .search-preview-loading,
@@ -942,25 +1118,6 @@
   min-width: 0;
 }
 
-.direct-image-preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.direct-image-preview-badge {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #1f4e8f;
-  background: rgba(140, 184, 238, 0.32);
-  border: 1px solid rgba(41, 94, 153, 0.26);
-  border-radius: 999px;
-  padding: 0.18rem 0.48rem;
-}
-
 .direct-image-preview-loading,
 .direct-image-preview-error {
   min-height: 80px;
@@ -1028,25 +1185,6 @@
   display: grid;
   gap: 0.35rem;
   min-width: 0;
-}
-
-.company-preview-inline-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.company-preview-badge {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #16624f;
-  background: rgba(92, 181, 149, 0.28);
-  border: 1px solid rgba(28, 118, 93, 0.3);
-  border-radius: 999px;
-  padding: 0.18rem 0.48rem;
 }
 
 .company-preview-loading,
@@ -1145,36 +1283,6 @@
   min-width: 0;
 }
 
-.enquiry-intent-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  min-width: 0;
-  flex-wrap: wrap;
-}
-
-.enquiry-intent-badge {
-  font-size: 0.66rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #8a2217;
-  background: rgba(226, 127, 113, 0.26);
-  border: 1px solid rgba(145, 43, 30, 0.28);
-  border-radius: 999px;
-  padding: 0.18rem 0.48rem;
-}
-
-.enquiry-intent-text {
-  margin: 0;
-  color: #5c1f17;
-  font-size: 0.76rem;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
 .enquiry-intent-link-row {
   margin: 0;
   color: #6d2e24;
@@ -1202,15 +1310,6 @@
   display: grid;
   gap: 0.22rem;
   min-width: 0;
-}
-
-.enquiry-intent-advanced-title {
-  margin: 0;
-  color: #8b3d1c;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 
 .enquiry-intent-advanced-text {
@@ -1368,6 +1467,61 @@
 .summary-pane {
   display: flex;
   flex-direction: column;
+}
+
+.summary-pane-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin-bottom: 0.18rem;
+}
+
+.summary-pane-heading-left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.summary-pane-heading-right {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-right: 0.72rem;
+}
+
+.summary-pane-heading h3 {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.activity-metrics-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.14rem;
+  min-width: 170px;
+  text-align: right;
+}
+
+.activity-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+  color: #5f3b20;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.activity-metric-label {
+  color: #6a492e;
+}
+
+.activity-metric-chip strong {
+  color: #8a4a1b;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .llm-pane {
@@ -1874,6 +2028,62 @@
   margin-bottom: 0;
 }
 
+.summary-journey-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 0.42rem 0 0.5rem;
+  padding: 0.34rem;
+}
+
+.journey-entry,
+.journey-exit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.04rem;
+  text-align: center;
+  width: 100%;
+  max-width: 90%;
+  border: 1px solid rgba(143, 78, 28, 0.22);
+  border-radius: 0.52rem;
+  background: rgba(255, 247, 236, 0.68);
+  padding: 0.38rem 0.46rem;
+}
+
+.journey-narrative {
+  margin: 0;
+  color: #5f3b20;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.journey-timestamp {
+  margin: 0;
+  color: #8a6b4f;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.journey-connector {
+  width: 2px;
+  height: 0.42rem;
+  background: linear-gradient(180deg, rgba(143, 78, 28, 0.3), rgba(143, 78, 28, 0.1));
+  margin: 0.08rem 0;
+}
+
+.journey-duration {
+  color: #6a3b1f;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.08rem 0.26rem;
+  background: rgba(184, 106, 42, 0.08);
+  border-radius: 0.18rem;
+  margin: 0.06rem 0;
+}
+
 .summary-signal-tags {
   display: flex;
   flex-wrap: wrap;
@@ -2081,17 +2291,59 @@
 
   .tracking-form--inline {
     flex: 1 1 100%;
-    grid-template-columns: 1fr 1fr;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .field-group--glid {
+    max-width: none;
+    flex: 1 1 180px;
+  }
+
+  .field-group--date {
+    max-width: none;
+    flex: 1 1 160px;
   }
 
   .tracking-form--inline button {
-    grid-column: 1 / -1;
+    flex: 0 0 auto;
+  }
+
+  .results-location-pill {
+    flex: 0 0 auto;
+    margin-left: 0;
   }
 
   .results-metrics {
     flex: 1 1 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .summary-pane-heading {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+
+  .summary-pane-heading-left {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .summary-pane-heading-right {
+    width: auto;
+    margin-left: auto;
+    padding-right: 0.52rem;
+  }
+
+  .activity-metrics-inline {
+    align-items: flex-end;
+    min-width: 160px;
+  }
+
+  .activity-metric-chip {
+    justify-content: flex-end;
   }
 
   .audit-panel {
@@ -2114,7 +2366,25 @@
   }
 
   .tracking-form--inline {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .summary-pane-heading {
+    flex-wrap: wrap;
+  }
+
+  .summary-pane-heading-right {
+    width: 100%;
+    padding-right: 0;
+  }
+
+  .activity-metrics-inline,
+  .activity-metric-chip {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    min-width: 0;
   }
 
   .results-metrics {

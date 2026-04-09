@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { apiFetch } from '../services/apiClient'
 
 type InsightPayload = {
   summary: string
@@ -599,7 +600,7 @@ function LLMInsights({ insights, structuredContext, loading, error, showChat }: 
     setChatInput('')
 
     try {
-      const response = await fetch('/api/llm/chat', {
+      const response = await apiFetch('/api/llm/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

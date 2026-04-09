@@ -10,9 +10,6 @@ function DirectImagePreview({ imageUrl }) {
   if (!normalizedUrl || !isValidUrl) {
     return (
       <section className="direct-image-preview" aria-live="polite">
-        <header className="direct-image-preview-header">
-          <span className="direct-image-preview-badge">Viewed Image</span>
-        </header>
         <div className="direct-image-preview-error">
           Image URL is missing or invalid for direct preview.
         </div>
@@ -22,10 +19,6 @@ function DirectImagePreview({ imageUrl }) {
 
   return (
     <section className="direct-image-preview" aria-live="polite">
-      <header className="direct-image-preview-header">
-        <span className="direct-image-preview-badge">Viewed Image</span>
-      </header>
-
       {status === 'loading' ? (
         <div className="direct-image-preview-loading">
           <span className="spinner"></span>

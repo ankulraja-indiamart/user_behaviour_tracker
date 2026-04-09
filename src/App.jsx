@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import './App.css'
 import ProductHoverPreview from './components/previews/ProductHoverPreview'
 import SearchInlinePreview from './components/previews/SearchInlinePreview'
@@ -10,11 +12,14 @@ import {
   buildGenericActionText,
   buildJourneyFromLogs,
   buildSearchUrl,
+  formatNavbarLocation,
   getActionTypeTag,
+  getActivityActionText,
   getActionTypeTagClass,
   getSessionPalette,
   toTitleCase,
 } from './utils/journeyUtils'
+import { apiFetch } from './services/apiClient'
 
 const DATE_FILTER_ALL = 'ALL'
 const ACTIVITY_FILTER_ALL = 'ALL'
@@ -67,14 +72,79 @@ const getAvailableDates = (journeySteps) => {
     }))
 }
 
+const getApiActivityRowCount = (apiPayload) => {
+  const activitySource =
+    apiPayload?.activity ??
+    apiPayload?.data?.activity ??
+    apiPayload?.logs ??
+    apiPayload?.data ??
+    apiPayload
+
+  if (Array.isArray(activitySource)) {
+    return activitySource.filter((entry) => entry && typeof entry === 'object').length
+  }
+
+  if (activitySource && typeof activitySource === 'object') {
+    return Object.values(activitySource)
+      .flat()
+      .filter((entry) => entry && typeof entry === 'object').length
+  }
+
+  return 0
+}
+
+const getTodayIsoDate = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const isoDateToDate = (isoDate) => {
+  const [yearText, monthText, dayText] = String(isoDate || '').split('-')
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const day = Number(dayText)
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null
+  }
+
+  const parsed = new Date(year, month - 1, day)
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null
+  }
+
+  return parsed
+}
+
+const dateToIsoDate = (dateValue) => {
+  if (!(dateValue instanceof Date) || Number.isNaN(dateValue.getTime())) {
+    return ''
+  }
+
+  const year = dateValue.getFullYear()
+  const month = String(dateValue.getMonth() + 1).padStart(2, '0')
+  const day = String(dateValue.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function App() {
+  const defaultEndDate = getTodayIsoDate()
   const [formData, setFormData] = useState({
     glId: '',
     startDate: '',
-    endDate: '',
+    endDate: defaultEndDate,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [journeyData, setJourneyData] = useState(null)
+  const [rawActivityCount, setRawActivityCount] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedSession, setSelectedSession] = useState(SESSION_FILTER_ALL)
   const [selectedDate, setSelectedDate] = useState(DATE_FILTER_ALL)
@@ -97,10 +167,41 @@ function App() {
   const layoutRef = useRef(null)
   const rightPanelRef = useRef(null)
   const llmPaneRef = useRef(null)
+  const downloadMenuRef = useRef(null)
 
   useEffect(() => {
     localStorage.setItem('timelineLayoutWidth', String(leftWidth))
   }, [leftWidth])
+
+  useEffect(() => {
+    if (!isDownloadMenuOpen) {
+      return
+    }
+
+    const handlePointerDown = (event) => {
+      const menuNode = downloadMenuRef.current
+      if (!menuNode || menuNode.contains(event.target)) {
+        return
+      }
+      setIsDownloadMenuOpen(false)
+    }
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsDownloadMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isDownloadMenuOpen])
 
   useEffect(() => {
     const llmPaneNode = llmPaneRef.current
@@ -302,6 +403,15 @@ function App() {
     }
   }, [journeyData])
 
+  const topNavbarLocation = useMemo(
+    () =>
+      formatNavbarLocation({
+        city: journeyData?.glb_city,
+        country: journeyData?.gl_country,
+      }),
+    [journeyData?.glb_city, journeyData?.gl_country],
+  )
+
   useEffect(() => {
     if (sessionGroups.length === 0) {
       setSelectedSession(SESSION_FILTER_ALL)
@@ -343,7 +453,59 @@ function App() {
     )
   }, [selectedSession, sessionGroups])
 
-  const buildSummaryData = (steps, totalSessions, title) => {
+  const getSortedStepsByTimestamp = (steps) => {
+    return [...steps].sort((left, right) => {
+      const leftHasTimestamp = Number.isFinite(left?.timestamp_ms)
+      const rightHasTimestamp = Number.isFinite(right?.timestamp_ms)
+
+      if (leftHasTimestamp && rightHasTimestamp) {
+        return left.timestamp_ms - right.timestamp_ms
+      }
+
+      if (leftHasTimestamp) {
+        return -1
+      }
+
+      if (rightHasTimestamp) {
+        return 1
+      }
+
+      const leftStep = Number(left?.step) || 0
+      const rightStep = Number(right?.step) || 0
+      return leftStep - rightStep
+    })
+  }
+
+  const calculateDuration = (startMs, endMs) => {
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      return null
+    }
+    const diffMs = Math.max(0, endMs - startMs)
+    const totalSeconds = Math.floor(diffMs / 1000)
+    const totalMinutes = Math.floor(totalSeconds / 60)
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    
+    if (hours === 0) {
+      return totalMinutes === 0 ? '<1 min' : `${totalMinutes} min`
+    }
+    return `${hours} hr ${minutes} min`
+  }
+
+  const toSummaryEndpoint = (step) => {
+    if (!step) {
+      return null
+    }
+
+    return {
+      actionText: getActivityActionText(step),
+      time: step.time || '-',
+      timestamp_ms: step.timestamp_ms || null,
+    }
+  }
+
+  const buildSummaryData = (steps, totalSessions, title, options = {}) => {
+    const { includeEntryExit = false } = options
     const searches = steps.filter((step) => step.is_search).length
     const productViews = steps.filter((step) => step.is_product_view).length
     const enquiriesGenerated = steps.filter((step) => step.is_enquiry).length
@@ -403,6 +565,27 @@ function App() {
         }
       })
 
+    const sortedSteps = includeEntryExit ? getSortedStepsByTimestamp(steps) : []
+    const entryStep = sortedSteps.length > 0 ? sortedSteps[0] : null
+    const exitStep = sortedSteps.length > 0 ? sortedSteps[sortedSteps.length - 1] : null
+    const isSingleActivity = sortedSteps.length <= 1
+
+    let journeyFlow = null
+    if (includeEntryExit && sortedSteps.length > 0) {
+      const entryEndpoint = toSummaryEndpoint(entryStep)
+      const exitEndpoint = toSummaryEndpoint(exitStep)
+      const duration = !isSingleActivity
+        ? calculateDuration(entryStep?.timestamp_ms, exitStep?.timestamp_ms)
+        : null
+      
+      journeyFlow = {
+        entry: entryEndpoint,
+        exit: exitEndpoint,
+        duration,
+        isSingleActivity,
+      }
+    }
+
     return {
       title,
       totalSessions,
@@ -411,6 +594,7 @@ function App() {
       buyleadsGenerated,
       topSignals,
       enquiryJourneyPoints,
+      journeyFlow,
     }
   }
 
@@ -438,10 +622,14 @@ function App() {
         : selectedSessionDisplay !== null
         ? `Session ${selectedSessionDisplay}`
         : 'No Session Selected',
+      {
+        includeEntryExit: true,
+      },
     )
   }, [selectedSession, selectedSessionDisplay, sessionGroups, visibleSteps])
 
   const summaryData = summaryType === 'DATE' ? dateSummaryData : sessionSummaryData
+  const processedActivityCount = filteredJourneySteps.length
 
   const resolveMcatName = (step) => {
     if (!step.is_product_view) {
@@ -532,7 +720,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/product-preview?url=${encodeURIComponent(safeUrl)}`,
         {
           method: 'GET',
@@ -713,6 +901,11 @@ function App() {
     setFormData((previous) => ({ ...previous, [name]: value }))
   }
 
+  const handleDatePickerChange = (fieldName, dateValue) => {
+    const isoDate = dateToIsoDate(dateValue)
+    setFormData((previous) => ({ ...previous, [fieldName]: isoDate }))
+  }
+
   const handlePdpMcatResolved = (session, stepNumber, mcatDetails) => {
     const resolvedMcat = String(mcatDetails?.mcatName || '').trim()
     const resolvedMcatId = String(mcatDetails?.mcatId || '').trim()
@@ -769,7 +962,7 @@ function App() {
     console.log('Calling LLM API', request)
 
     try {
-      const response = await fetch('/api/llm/analyze', {
+      const response = await apiFetch('/api/llm/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -798,19 +991,27 @@ function App() {
     event.preventDefault()
     const requestStartedAt = Date.now()
 
+    const parsedStartDate = formData.startDate
+    const parsedEndDate = formData.endDate
+
+    if (!isoDateToDate(parsedStartDate) || !isoDateToDate(parsedEndDate)) {
+      setErrorMessage('Please choose Start Date and End Date.')
+      return
+    }
+
     try {
       setIsSubmitting(true)
       setErrorMessage('')
 
-      const response = await fetch('/api/behavior', {
+      const response = await apiFetch('/api/behavior', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           glId: formData.glId,
-          startDate: formData.startDate,
-          endDate: formData.endDate,
+          startDate: parsedStartDate,
+          endDate: parsedEndDate,
         }),
       })
 
@@ -823,11 +1024,12 @@ function App() {
 
       const responseData = await response.json()
       console.log('GetCSLData request succeeded')
+      const totalActivityRows = getApiActivityRowCount(responseData)
 
       const analysisPayload = {
         glid: formData.glId,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
       }
 
       const transformed = buildJourneyFromLogs(responseData)
@@ -838,6 +1040,7 @@ function App() {
       }
 
       setJourneyData(transformed)
+      setRawActivityCount(totalActivityRows)
       setSelectedDate(DATE_FILTER_ALL)
       setActivityFilter(ACTIVITY_FILTER_ALL)
       setSelectedSession(SESSION_FILTER_ALL)
@@ -895,25 +1098,47 @@ function App() {
               <div className="date-grid">
                 <div className="field-group">
                   <label htmlFor="start-date">Start Date</label>
-                  <input
-                    id="start-date"
-                    name="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div className="date-input-wrapper">
+                    <DatePicker
+                      id="start-date"
+                      name="startDate"
+                      selected={isoDateToDate(formData.startDate)}
+                      onChange={(dateValue) => handleDatePickerChange('startDate', dateValue)}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="DD/MM/YYYY"
+                      maxDate={isoDateToDate(formData.endDate) || undefined}
+                      className="date-picker-input"
+                      required
+                    />
+                    <svg className="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
                 </div>
                 <div className="field-group">
                   <label htmlFor="end-date">End Date</label>
-                  <input
-                    id="end-date"
-                    name="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div className="date-input-wrapper">
+                    <DatePicker
+                      id="end-date"
+                      name="endDate"
+                      selected={isoDateToDate(formData.endDate)}
+                      onChange={(dateValue) => handleDatePickerChange('endDate', dateValue)}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="DD/MM/YYYY"
+                      minDate={isoDateToDate(formData.startDate) || undefined}
+                      className="date-picker-input"
+                      required
+                    />
+                    <svg className="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
                 </div>
               </div>
 
@@ -937,7 +1162,7 @@ function App() {
           <header className="results-navbar" aria-label="Active tracking filters">
             <div className="results-navbar-main">
               <form className="tracking-form tracking-form--inline" onSubmit={handleSubmit}>
-                <div className="field-group field-group--compact">
+                <div className="field-group field-group--compact field-group--glid">
                   <label htmlFor="results-gl-id">User GL ID</label>
                   <input
                     id="results-gl-id"
@@ -950,28 +1175,50 @@ function App() {
                   />
                 </div>
 
-                <div className="field-group field-group--compact">
+                <div className="field-group field-group--compact field-group--date">
                   <label htmlFor="results-start-date">Start Date</label>
-                  <input
-                    id="results-start-date"
-                    name="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div className="date-input-wrapper date-input-wrapper--compact">
+                    <DatePicker
+                      id="results-start-date"
+                      name="startDate"
+                      selected={isoDateToDate(formData.startDate)}
+                      onChange={(dateValue) => handleDatePickerChange('startDate', dateValue)}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="DD/MM/YYYY"
+                      maxDate={isoDateToDate(formData.endDate) || undefined}
+                      className="date-picker-input"
+                      required
+                    />
+                    <svg className="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
                 </div>
 
-                <div className="field-group field-group--compact">
+                <div className="field-group field-group--compact field-group--date">
                   <label htmlFor="results-end-date">End Date</label>
-                  <input
-                    id="results-end-date"
-                    name="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div className="date-input-wrapper date-input-wrapper--compact">
+                    <DatePicker
+                      id="results-end-date"
+                      name="endDate"
+                      selected={isoDateToDate(formData.endDate)}
+                      onChange={(dateValue) => handleDatePickerChange('endDate', dateValue)}
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="DD/MM/YYYY"
+                      minDate={isoDateToDate(formData.startDate) || undefined}
+                      className="date-picker-input"
+                      required
+                    />
+                    <svg className="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
                 </div>
 
                 <button type="submit" disabled={isSubmitting}>
@@ -984,6 +1231,11 @@ function App() {
                     'Track Behavior'
                   )}
                 </button>
+                {topNavbarLocation.label ? (
+                  <span className="results-location-pill" aria-label="User location">
+                    <span>{topNavbarLocation.label}</span>
+                  </span>
+                ) : null}
               </form>
 
               <div className="results-metrics" aria-label="Journey summary metrics">
@@ -1026,7 +1278,7 @@ function App() {
             >
               <div className="timeline-panel-header">
                 <h3>Timeline View</h3>
-                <div className="timeline-download-menu">
+                <div className="timeline-download-menu" ref={downloadMenuRef}>
                   <button
                     type="button"
                     className="timeline-download-button"
@@ -1063,10 +1315,6 @@ function App() {
                   ) : null}
                 </div>
               </div>
-              <p className="panel-subtitle">
-                User: {journeyData.glusr_id} | {journeyData.glb_city},{' '}
-                {journeyData.gl_country} | Steps: {filteredJourneySteps.length}
-              </p>
 
               <div className="date-segment-switcher" aria-label="Date selector">
                 <button
@@ -1126,43 +1374,7 @@ function App() {
                       key={`session-${group.session}`}
                     >
                       {group.steps.map((step, stepIndex) => {
-                        const enquiryActionText = step.is_best_price_intent
-                          ? step.product
-                            ? step.city
-                              ? `User requested best price for "${step.product}" in ${step.city}`
-                              : `User requested best price for "${step.product}"`
-                            : 'User requested best price through enquiry intent'
-                          : step.product
-                            ? step.city
-                              ? `User generated enquiry for "${step.product}" in ${step.city}`
-                              : `User generated enquiry for "${step.product}"`
-                            : 'User generated an enquiry intent'
-                        const mcatActionText = step.mcat_page_name
-                          ? step.city
-                            ? `User opened Mcat page (${toTitleCase(step.mcat_page_name)}) in ${step.city}`
-                            : `User opened Mcat page (${toTitleCase(step.mcat_page_name)})`
-                          : step.city
-                            ? `User opened Mcat page in ${step.city}`
-                            : 'User opened Mcat page'
-                        const searchActionText = step.keyword
-                          ? step.search_action === 'filter_applied'
-                            ? `User applied filters on "${step.keyword}"${step.search_filters?.city ? ` in ${step.search_filters.city}` : ''}${step.search_filters?.price ? ` with price ${step.search_filters.price}` : ''}`
-                            : step.search_city
-                              ? `User searched "${step.keyword}" in ${step.search_city}`
-                              : `User searched "${step.keyword}"`
-                          : step.type || 'User performed a search'
-                        const pdpActionText = 'User Saw PDP page'
-                        const productActionName = step.product || null
-                        const productActionText = productActionName
-                          ? `User viewed "${productActionName}"`
-                          : 'User viewed a product'
-                        const imageActionText = productActionName
-                          ? step.image_view_city
-                            ? `User viewed "${productActionName}" in ${step.image_view_city}`
-                            : `User viewed "${productActionName}"`
-                          : 'User viewed a product'
-                        const genericActionText = buildGenericActionText(step)
-                        const supplierActionText = 'Open company page'
+                        const actionText = getActivityActionText(step)
                         const requestPathValue = String(step.request_path || '').trim()
                         const imageSourceValue = String(step.image_source_url || '').trim()
                         const hasDirectImageExtension = (value) =>
@@ -1193,23 +1405,6 @@ function App() {
                           !directImagePreviewUrl &&
                           isProductRelated &&
                           Boolean(step.product_url || step.image_product_url)
-                        const actionText = step.is_buylead_generated || step.is_buylead
-                          ? 'BuyLead Generated'
-                          : step.is_enquiry
-                          ? enquiryActionText
-                          : step.is_mcat_page
-                            ? mcatActionText
-                            : step.is_search
-                              ? searchActionText
-                              : step.is_supplier_view
-                                ? supplierActionText
-                                : step.is_product_view
-                                  ? pdpActionText
-                                  : step.is_image_view
-                                    ? imageActionText
-                                    : isProductRelated
-                                      ? productActionText
-                                      : genericActionText
                         const actionUrl = step.is_buylead_generated || step.is_buylead
                           ? step.product_url || step.page_url || step.service_url
                           : step.is_enquiry
@@ -1394,7 +1589,23 @@ function App() {
             >
               <div className="right-panel-split" ref={rightPanelRef}>
                 <section className="summary-pane" style={{ height: `calc(${summaryHeight}% - 4px)` }}>
-                  <h3>Quick Summary</h3>
+                  <div className="summary-pane-heading">
+                    <div className="summary-pane-heading-left">
+                      <h3>Quick Summary</h3>
+                    </div>
+                    <div className="summary-pane-heading-right">
+                      <div className="activity-metrics-inline" aria-label="Activity metrics">
+                        <span className="activity-metric-chip">
+                          <span className="activity-metric-label">Total Activity:</span>{' '}
+                          <strong>{rawActivityCount || 0}</strong>
+                        </span>
+                        <span className="activity-metric-chip">
+                          <span className="activity-metric-label">Processed Activity:</span>{' '}
+                          <strong>{processedActivityCount || 0}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                   <div className="summary-container">
                     <div className="summary-header">
                       <div className="summary-toggle" role="tablist" aria-label="Summary type">
@@ -1435,6 +1646,32 @@ function App() {
                         <p className="audit-note">No activity found.</p>
                       ) : (
                         <>
+                          {summaryType === 'SESSION' && summaryData.journeyFlow ? (
+                            <section className="summary-journey-flow" aria-label="User journey flow">
+                              <div className="journey-entry">
+                                <p className="journey-narrative">{summaryData.journeyFlow.entry?.actionText || '-'}</p>
+                                <p className="journey-timestamp">{summaryData.journeyFlow.entry?.time || '-'}</p>
+                              </div>
+
+                              {!summaryData.journeyFlow.isSingleActivity && (
+                                <>
+                                  <div className="journey-connector" aria-hidden="true"></div>
+                                  <div className="journey-duration">
+                                    {summaryData.journeyFlow.duration || '–'}
+                                  </div>
+                                  <div className="journey-connector" aria-hidden="true"></div>
+                                </>
+                              )}
+
+                              {!summaryData.journeyFlow.isSingleActivity && (
+                                <div className="journey-exit">
+                                  <p className="journey-narrative">{summaryData.journeyFlow.exit?.actionText || '-'}</p>
+                                  <p className="journey-timestamp">{summaryData.journeyFlow.exit?.time || '-'}</p>
+                                </div>
+                              )}
+                            </section>
+                          ) : null}
+
                           <h4>Top Signals</h4>
                           {summaryData.topSignals.length > 0 ? (
                             <div className="summary-signal-tags">

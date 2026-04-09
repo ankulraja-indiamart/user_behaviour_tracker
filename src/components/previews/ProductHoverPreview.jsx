@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { apiFetch } from '../../services/apiClient'
 
 const safeDecode = (value) => {
   try {
@@ -57,7 +58,7 @@ function ProductHoverPreview({ productUrl, onMcatResolved, hideTitle = false }) 
     setPreviewError('')
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/product-preview?url=${encodeURIComponent(productUrl)}`,
         {
           method: 'GET',
